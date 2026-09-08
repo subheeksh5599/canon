@@ -14,10 +14,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from canon import Canon
 from canon.types import Outcome
 
-BUYER = "0xbuyer000000000000000000000000000001"
-PROVIDER = "0xprov000000000000000000000000000002"
-PROVIDER2 = "0xprov000000000000000000000000000003"
-JUDGE = "0xjudg0000000000000000000000000000"
+BUYER = "0x3991d5267e013fb9d5f2fbb30b8f3d8ff97c1ad9"  # real actor wallet (env: BUYER_KEY)
+PROVIDER = "0x20fd7bec60829230a1cfbe4caf25a12ab2e49aa9"  # real actor wallet (env: PROVIDER_KEY)
+PROVIDER2 = "0x31eafd3fe36d6c891ea5b369a876166dffabf320"  # real actor wallet (env: PROVIDER2_KEY)
+JUDGE = "0x617b0e8d15c3a48ddf2ec70ab17bf7cc7dbf3046"  # real actor wallet (env: JUDGE_KEY)
 
 
 def seed(canon: Canon, failures: int = 5) -> None:

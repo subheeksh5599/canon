@@ -6,7 +6,7 @@ import {
   Activity, ArrowRight, CheckCircle2, FileText, Landmark, Layers,
   RefreshCw, Scale, ScrollText, Sparkles, XCircle,
 } from "lucide-react";
-import { api, ACTOR_LABEL, fmt, short, type Terms, type Tx } from "@/lib/api";
+import { api, ACTOR_LABEL, EXPLORER, fmt, isTxHash, short, type Terms, type Tx } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -343,7 +343,19 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
             <CardTitle className="flex items-center gap-2 text-base">
               <FileText className="size-4 text-[#5fc9a8]" /> {short(tx.tx_id, 16)}
               <Badge className="rounded-full">{tx.state}</Badge>
-              {tx.chain_ref && <span className="term-mono text-[10px] text-muted-foreground">{short(tx.chain_ref, 12)}</span>}
+              {tx.chain_ref && isTxHash(tx.chain_ref) ? (
+                <a
+                  href={`${EXPLORER}/tx/${tx.chain_ref}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="term-mono text-[10px] text-[#5fc9a8] underline decoration-[#5fc9a8]/40 underline-offset-2 hover:text-[#74d4b6]"
+                  title="Open on Base Sepolia explorer"
+                >
+                  {short(tx.chain_ref, 12)} ↗
+                </a>
+              ) : (
+                tx.chain_ref && <span className="term-mono text-[10px] text-muted-foreground">{short(tx.chain_ref, 12)}</span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
@@ -420,7 +432,19 @@ export function Transactions({ bump }: { bump: number }) {
                   <Badge className="rounded-full">{t.state}</Badge>
                 </TableCell>
                 <TableCell className="term-mono text-[10px] text-muted-foreground">
-                  {t.chain_ref ? short(t.chain_ref, 10) : "—"}
+                  {t.chain_ref && isTxHash(t.chain_ref) ? (
+                    <a
+                      href={`${EXPLORER}/tx/${t.chain_ref}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#5fc9a8] underline decoration-[#5fc9a8]/40 underline-offset-2 hover:text-[#74d4b6]"
+                      title="Open on Base Sepolia explorer"
+                    >
+                      {short(t.chain_ref, 10)} ↗
+                    </a>
+                  ) : (
+                    t.chain_ref ? short(t.chain_ref, 10) : "—"
+                  )}
                 </TableCell>
               </TableRow>
             ))}

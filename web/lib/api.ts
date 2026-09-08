@@ -75,9 +75,13 @@ export const short = (s: string | null | undefined, n = 10) =>
 export const fmt = (n: number) =>
   `$${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 
+export const EXPLORER = "https://sepolia.basescan.org";
+export const isTxHash = (s: string | null | undefined) =>
+  !!s && /^0x[0-9a-fA-F]{64}$/.test(s);
+
 export const ACTOR_LABEL: Record<string, string> = {
-  "0xbuyer000000000000000000000000000001": "Buyer",
-  "0xprov000000000000000000000000000002": "Prov-01 · scarred",
-  "0xprov000000000000000000000000000003": "Prov-02 · new",
-  "0xjudg0000000000000000000000000000": "Adjudicator",
+  "0x3991d5267e013fb9d5f2fbb30b8f3d8ff97c1ad9": "Buyer",
+  "0x20fd7bec60829230a1cfbe4caf25a12ab2e49aa9": "Prov-01 · scarred",
+  "0x31eafd3fe36d6c891ea5b369a876166dffabf320": "Prov-02 · new",
+  "0x617b0e8d15c3a48ddf2ec70ab17bf7cc7dbf3046": "Adjudicator",
 };

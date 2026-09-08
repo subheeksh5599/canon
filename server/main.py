@@ -1,14 +1,20 @@
-"""CANON server — FastAPI wrapper over the real engine + real Sibyl Memory.
+"""CANON server — FastAPI wrapper over the real engine + real Sibyl Memory +
+real Base Sepolia settlement (USDC).
 
-Every endpoint runs the actual Canon engine on a local Sibyl file. Nothing is
-mocked: terms come from doctrine stored in Sibyl, the journal is chain-hashed,
-and the judge-lab endpoints run the same proofs as the CLI gate artifacts.
+Every money event mirrors to a genuine USDC transaction on Base Sepolia signed
+by the operator key (env SETTLE_KEY / CANONMARKET_ADDRESS). When the chain is
+not configured the settlement endpoints return an explicit error — nothing is
+simulated, no fabricated hashes, no hardcoded chain references.
+
+Memory-only endpoints (evaluate, doctrine, cases, judge lab) are the Sibyl
+proofs and run regardless of chain config.
 
 Run:  uvicorn server.main:app --port 8000  (from the repo root)
 """
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import shutil
 import sys
@@ -26,18 +32,23 @@ from typing import Any, Optional
 
 from canon import Canon
 from canon.errors import CanonError
+from canon.chain import ChainError, configured as chain_configured, env_chain, explorer_url
 from scripts.seed_history import BUYER, PROVIDER, PROVIDER2, JUDGE, seed
 
 ROOT = Path(__file__).resolve().parent.parent
 DEMO_DB = Path(tempfile.gettempdir()) / "canon-server.db"
-SIM_CHAIN = "0x" + "c" * 40  # local simulated settlement marker (no key loaded)
 
-app = FastAPI(title="CANON", version="0.1.0")
+# Load settlement env from the gitignored local env file (VPS uses systemd
+# EnvironmentFile with the same keys). Never overrides real environment.
+from canon.chain import load_env_file
+load_env_file(ROOT / ".env.base-sepolia")
+
+app = FastAPI(title="CANON", version="0.2.0")
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
 
-market: dict[str, Any] = {}
+market: dict[str, Any] = {"chain": {}}  # engine_id -> contract mirror registry
 
 
 def fresh_market() -> Canon:
@@ -45,6 +56,7 @@ def fresh_market() -> Canon:
     seed(canon)
     market["canon"] = canon
     market["txids"] = []
+    market["chain"] = {}
     return canon
 
 
@@ -63,16 +75,43 @@ def ok(**kw) -> dict:
     return {"ok": True, **kw}
 
 
+def terms_digest(terms: dict) -> str:
+    """Canonical sha256 of the doctrine-generated terms — stored on-chain so
+    post-funding tampering with the terms is visible to anyone."""
+    canon = json.dumps(terms, sort_keys=True)
+    return "0x" + hashlib.sha256(canon.encode()).hexdigest()
+
+
+def chain_info(tx_dict: dict) -> dict:
+    """Attach the real on-chain mirror + explorer links to an engine tx."""
+    reg = market["chain"].get(tx_dict.get("tx_id")) or {}
+    out = dict(tx_dict)
+    out["chain"] = {"configured": chain_configured(), **reg}
+    if reg.get("escrow"):
+        out["chain_ref"] = reg["escrow"]
+        out["explorer"] = explorer_url(reg["escrow"])
+    return out
+
+
+def chain_ctx():
+    """Return the chain handle or raise a clear configuration error."""
+    if not chain_configured():
+        raise ChainError(
+            "settlement chain not configured — set SETTLE_KEY + CANONMARKET_ADDRESS "
+            "env (Base Sepolia), then create the deal again")
+    return env_chain()
+
+
 class EvaluateIn(BaseModel):
     provider: str = PROVIDER
     job_type: str = "research agent"
-    job_value_usd: float = 400.0
+    job_value_usd: float = 20.0
 
 
 class TxIn(BaseModel):
     provider: str = PROVIDER
     job_type: str = "research agent"
-    job_value_usd: float = 400.0
+    job_value_usd: float = 20.0
 
 
 class ActionIn(BaseModel):
@@ -88,7 +127,7 @@ class AppealIn(BaseModel):
     challenger: str = PROVIDER2
     target_rule_id: str
     arguments: str
-    bond_usd: float = 20.0
+    bond_usd: float = 5.0
     evidence_source: str = "ATTESTATION"
 
 
@@ -101,17 +140,29 @@ class ResolveIn(BaseModel):
 def status():
     c = get_canon()
     try:
-        return ok(
+        st = ok(
             doctrine_version=c.doctrine_now().version,
             cases=len(c.cases.list_cases()),
             pool=c.pool_balance(),
             journal_ok=c.journal_ok()[0],
             actors={"buyer": BUYER, "provider_scarred": PROVIDER, "provider_new": PROVIDER2,
                     "adjudicator": JUDGE},
-            db=str(DEMO_DB),
-            simulated_settlement=True,
-            note="local demo settlement marker — Base deployment pending key",
         )
+        if chain_configured():
+            ch = env_chain()
+            st.update(
+                settlement="onchain",
+                chain_id=ch.chain_id,
+                venue_address=ch.venue,
+                market_address=str(ch.market),
+                usdc_balance_usd=str(ch.usdc_balance()),
+                contract_usdc_usd=str(ch.contract_usdc()),
+                pool_onchain_usd=str(ch.pool_usdc()),
+            )
+        else:
+            st.update(settlement="not-configured",
+                      note="set SETTLE_KEY + CANONMARKET_ADDRESS (Base Sepolia) to enable real settlement")
+        return st
     except Exception as e:
         return err(e)
 
@@ -145,9 +196,19 @@ def create_tx(body: TxIn):
                        job_value_usd=body.job_value_usd)
         tx = c.create_tx(buyer=BUYER, provider=body.provider, job_type=body.job_type,
                          job_value_usd=body.job_value_usd, terms=t)
+        # real on-chain registration under the doctrine terms digest
+        ch = chain_ctx()
+        cid, hash_ = ch.create_tx(
+            buyer=BUYER, provider=body.provider,
+            job_value_usd=body.job_value_usd, upfront_usd=t.upfront_usd,
+            escrow_usd=float(sum(t.milestones) or 0.0), bond_usd=t.bond_usd,
+            digest=terms_digest(t.to_dict()))
+        market["chain"][tx.tx_id] = {"contract_id": cid, "create": hash_}
         market.setdefault("txids", []).append(tx.tx_id)
-        return ok(tx=tx.to_dict(), terms=t.to_dict())
+        return ok(tx=chain_info(tx.to_dict()), terms=t.to_dict())
     except CanonError as e:
+        return err(e)
+    except ChainError as e:
         return err(e)
 
 
@@ -158,7 +219,7 @@ def list_txs():
     for tid in market.get("txids", []):
         try:
             tx = c.venue.require_tx(tid)
-            out.append(tx.to_dict())
+            out.append(chain_info(tx.to_dict()))
         except Exception:
             pass
     out.sort(key=lambda t: t.get("created_at", ""), reverse=True)
@@ -169,9 +230,18 @@ def list_txs():
 def execute(tx_id: str):
     c = get_canon()
     try:
-        tx = c.execute(tx_id, chain_ref=f"0x{SIM_CHAIN}{uuid.uuid4().hex[:8]}")
-        return ok(tx=tx.to_dict())
+        reg = market["chain"].get(tx_id)
+        if not reg or not reg.get("contract_id"):
+            raise ChainError("no on-chain registration for this tx (chain was off when created)")
+        ch = chain_ctx()
+        # money first: escrow + bond actually locked in USDC on Base Sepolia
+        hash_ = ch.fund(reg["contract_id"])
+        tx = c.execute(tx_id, chain_ref=hash_)
+        market["chain"][tx_id]["escrow"] = hash_
+        return ok(tx=chain_info(tx.to_dict()))
     except CanonError as e:
+        return err(e)
+    except ChainError as e:
         return err(e)
 
 
@@ -180,8 +250,15 @@ def complete(tx_id: str, body: ActionIn):
     c = get_canon()
     try:
         tx = c.complete(tx_id, provider=body.provider)
-        return ok(tx=tx.to_dict())
+        reg = market["chain"].get(tx_id)
+        if reg and reg.get("contract_id"):
+            ch = chain_ctx()
+            hash_ = ch.mark_completed(reg["contract_id"], ok=True)
+            market["chain"][tx_id]["complete"] = hash_
+        return ok(tx=chain_info(tx.to_dict()))
     except CanonError as e:
+        return err(e)
+    except ChainError as e:
         return err(e)
 
 
@@ -190,8 +267,15 @@ def fail(tx_id: str, body: ActionIn):
     c = get_canon()
     try:
         tx = c.fail(tx_id, provider=body.provider)
-        return ok(tx=tx.to_dict())
+        reg = market["chain"].get(tx_id)
+        if reg and reg.get("contract_id"):
+            ch = chain_ctx()
+            hash_ = ch.mark_completed(reg["contract_id"], ok=False)
+            market["chain"][tx_id]["fail"] = hash_
+        return ok(tx=chain_info(tx.to_dict()))
     except CanonError as e:
+        return err(e)
+    except ChainError as e:
         return err(e)
 
 
@@ -199,11 +283,27 @@ def fail(tx_id: str, body: ActionIn):
 def claim(tx_id: str, body: ClaimIn):
     c = get_canon()
     try:
+        reg = market["chain"].get(tx_id)
+        if not reg or not reg.get("contract_id"):
+            raise ChainError("no on-chain registration for this tx")
         res = c.file_and_resolve_claim(
             tx_id=tx_id, buyer=BUYER, verifier=JUDGE,
             evidence=[{"source": body.evidence_source, "note": body.note}])
-        return ok(result=res)
+        ch = chain_ctx()
+        held = ch.tx_onchain(reg["contract_id"])
+        # chain truth: refund what the contract actually holds for this tx
+        escrow_refund = held["escrow_locked_usd"]
+        coverage = float(ch.pool_usdc())  # only real pool funds can cover
+        hash_ = ch.resolve_claim(reg["contract_id"], payee=BUYER,
+                                 escrow_refund_usd=escrow_refund, coverage_usd=coverage)
+        market["chain"][tx_id]["claim"] = hash_
+        tx = c.venue.require_tx(tx_id)
+        return ok(result=res, tx=chain_info(tx.to_dict()), claim_tx_hash=hash_,
+                  claim_explorer=explorer_url(hash_),
+                  escrow_refund_usd=escrow_refund, coverage_usd=coverage)
     except CanonError as e:
+        return err(e)
+    except ChainError as e:
         return err(e)
 
 
@@ -212,7 +312,7 @@ def tx_detail(tx_id: str):
     c = get_canon()
     try:
         tx = c.venue.require_tx(tx_id)
-        return ok(tx=tx.to_dict(), provenance=c.provenance(tx_id))
+        return ok(tx=chain_info(tx.to_dict()), provenance=c.provenance(tx_id))
     except CanonError as e:
         return err(e)
 
@@ -246,8 +346,15 @@ def open_appeal(body: AppealIn):
                           arguments=body.arguments,
                           evidence=[{"source": body.evidence_source, "note": "appeal"}],
                           bond_usd=body.bond_usd)
-        return ok(appeal=a.to_dict())
+        # real appeal bond on Base Sepolia (venue advances as CCP)
+        ch = chain_ctx()
+        aid, hash_ = ch.open_appeal(body.challenger, body.target_rule_id, bond_usd=body.bond_usd)
+        market["chain"].setdefault(f"appeal:{a.appeal_id}", {})["contract_id"] = aid
+        market["chain"][f"appeal:{a.appeal_id}"]["open"] = hash_
+        return ok(appeal=a.to_dict(), appeal_tx_hash=hash_, appeal_explorer=explorer_url(hash_))
     except CanonError as e:
+        return err(e)
+    except ChainError as e:
         return err(e)
 
 
@@ -256,8 +363,15 @@ def resolve_appeal(appeal_id: str, body: ResolveIn):
     c = get_canon()
     try:
         a = c.resolve_appeal(appeal_id, decision=body.decision, adjudicator=JUDGE)
+        reg = market["chain"].get(f"appeal:{appeal_id}")
+        if reg and reg.get("contract_id"):
+            ch = chain_ctx()
+            hash_ = ch.resolve_appeal(reg["contract_id"], accepted=body.decision == "ACCEPTED")
+            market["chain"][f"appeal:{appeal_id}"]["resolve"] = hash_
         return ok(appeal=a.to_dict(), doctrine_version=c.doctrine_now().version)
     except CanonError as e:
+        return err(e)
+    except ChainError as e:
         return err(e)
 
 
@@ -279,6 +393,18 @@ def memory_view():
     return ok(journal_ok=c.journal_ok()[0], events=events[::-1])
 
 
+@app.get("/api/chain")
+def chain_view():
+    """Transparency: every real settlement tx with its explorer link."""
+    if not chain_configured():
+        return ok(configured=False, note="settlement chain not configured")
+    ch = env_chain()
+    return ok(configured=True, chain_id=ch.chain_id, venue=ch.venue,
+              market=str(ch.market), usdc_balance_usd=str(ch.usdc_balance()),
+              contract_usdc_usd=str(ch.contract_usdc()), pool_usdc_usd=str(ch.pool_usdc()),
+              mirror=market.get("chain", {}))
+
+
 # ----------------------------------------------------------------- judge lab
 def _naive_terms():
     tmp = Path(tempfile.mktemp(suffix=".db"))
@@ -286,7 +412,7 @@ def _naive_terms():
     c.admit(BUYER)
     c.admit(PROVIDER2)
     return c.evaluate(buyer=BUYER, provider=PROVIDER2,
-                      job_type="research agent", job_value_usd=400.0).to_dict()
+                      job_type="research agent", job_value_usd=20.0).to_dict()
 
 
 @app.get("/api/judge/coldstart")
@@ -297,7 +423,7 @@ def judge_coldstart():
         seed(c)
         c.admit(PROVIDER2)
         recalled = c.evaluate(buyer=BUYER, provider=PROVIDER2,
-                              job_type="research agent", job_value_usd=400.0).to_dict()
+                              job_type="research agent", job_value_usd=20.0).to_dict()
         naive = _naive_terms()
         return ok(pass_=naive["bond_usd"] == 0.0 and recalled["bond_usd"] > 0.0,
                   virgin_terms=naive, recalled_terms=recalled,
@@ -309,7 +435,6 @@ def judge_coldstart():
 @app.get("/api/judge/deletion")
 def judge_deletion():
     try:
-        # copy the live db so the demo market survives the test
         src = DEMO_DB
         tmp = Path(tempfile.mktemp(suffix=".db"))
         if src.exists():
@@ -322,7 +447,7 @@ def judge_deletion():
         try:
             fresh.admit(BUYER)
             fresh.evaluate(buyer=BUYER, provider=PROVIDER,
-                           job_type="research agent", job_value_usd=400.0)
+                           job_type="research agent", job_value_usd=20.0)
         except CanonError as e:
             refusal = f"{type(e).__name__}: {e}"
         return ok(pass_=refusal is not None, doctrine_before=with_memory, refusal=refusal)
@@ -339,7 +464,7 @@ def judge_ablation():
         seed(c)
         c.admit(PROVIDER2)
         governed = c.evaluate(buyer=BUYER, provider=PROVIDER2,
-                              job_type="research agent", job_value_usd=400.0).to_dict()
+                              job_type="research agent", job_value_usd=20.0).to_dict()
         return ok(pass_=governed["bond_usd"] > naive["bond_usd"],
                   naive=naive, governed=governed,
                   reduction=round(1 - governed["upfront_usd"] / naive["upfront_usd"], 4))

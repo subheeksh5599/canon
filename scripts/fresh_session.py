@@ -14,10 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from canon import Canon
-
-BUYER = "0xbuyer000000000000000000000000000001"
-PROVIDER = "0xprov000000000000000000000000000002"
-PROVIDER2 = "0xprov000000000000000000000000000003"
+from scripts.seed_history import BUYER, PROVIDER, PROVIDER2, JUDGE  # noqa: F401
 
 
 def run(db: str) -> None:
