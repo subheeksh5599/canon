@@ -1,39 +1,38 @@
 @import "tailwindcss";
 
-/* ============ CANON — PitchEdge language (user-validated) ============
-   Bone #EDEAE3 · Ink #0A0A0A · Signal #D9FF00 · Danger #FF4D00 · Deep #0B1A0E
-   Oswald (display) · Instrument Serif (italic accent) · IBM Plex Mono (data) · Inter (body)
-   No neon, no gradients, no event names, no mini-eyebrow event labels. */
+/* ============ CANON — Midnight language (ORICHALCUM spec, user-selected) ============
+   Deep navy #070B13 · mint #5FC9A8 semantic-only · danger #E06A5E rejected-only.
+   Space Grotesk display/body · DM Mono data labels. No gradients, no glow, no noise. */
 
 :root {
-  --background: #edeae3;
-  --foreground: #0a0a0a;
-  --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --popover: #ffffff;
-  --popover-foreground: #0a0a0a;
-  --primary: #d9ff00;
-  --primary-foreground: #0a0a0a;
-  --secondary: #e2ded5;
-  --secondary-foreground: #0a0a0a;
-  --muted: #e6e2d9;
-  --muted-foreground: #5a5a5a;
-  --accent: #0b1a0e;
-  --accent-foreground: #edeae3;
-  --destructive: #ff4d00;
+  --background: #070b13;
+  --foreground: #e9ecf3;
+  --card: #0d1424;
+  --card-foreground: #e9ecf3;
+  --popover: #0d1424;
+  --popover-foreground: #e9ecf3;
+  --primary: #5fc9a8;
+  --primary-foreground: #071018;
+  --secondary: #0a101c;
+  --secondary-foreground: #e9ecf3;
+  --muted: #101a2e;
+  --muted-foreground: #8b94a7;
+  --accent: #5fc9a8;
+  --accent-foreground: #071018;
+  --destructive: #e06a5e;
   --destructive-foreground: #ffffff;
-  --border: #c9c4b8;
-  --input: #b9b3a5;
-  --ring: #0b1a0e;
+  --border: rgba(233, 236, 243, 0.12);
+  --input: rgba(233, 236, 243, 0.2);
+  --ring: #5fc9a8;
   --radius: 0.375rem;
-  --chart-1: #0b1a0e;
-  --chart-2: #d9ff00;
-  --chart-3: #ff4d00;
-  --chart-4: #5a5a5a;
-  --chart-5: #0a0a0a;
-  --sidebar: #e6e2d9;
-  --sidebar-foreground: #0a0a0a;
-  --sidebar-accent: #ffffff;
+  --chart-1: #5fc9a8;
+  --chart-2: #8b94a7;
+  --chart-3: #e06a5e;
+  --chart-4: #55607a;
+  --chart-5: #e9ecf3;
+  --sidebar: #0a101c;
+  --sidebar-foreground: #e9ecf3;
+  --sidebar-accent: rgba(95, 201, 168, 0.12);
 }
 
 @theme inline {
@@ -61,75 +60,143 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), "Oswald", ui-sans-serif, sans-serif;
-  --font-serif: var(--font-serif), Georgia, serif;
-  --font-mono: var(--font-mono), ui-monospace, "IBM Plex Mono", monospace;
+  --font-sans: var(--font-space), "Space Grotesk", ui-sans-serif, sans-serif;
+  --font-mono: var(--font-dmmono), "DM Mono", ui-monospace, monospace;
 }
 
 * {
   border-color: var(--border);
 }
 
+html {
+  background: #070b13;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background: #070b13;
+  color: #e9ecf3;
+  font-family: var(--font-space), "Space Grotesk", ui-sans-serif, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 ::selection {
-  background: #d9ff00;
-  color: #0a0a0a;
+  background: #5fc9a8;
+  color: #071018;
 }
 
-/* broadcast grain (part of the language) */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 60;
-  opacity: 0.05;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* ------------ type utilities ------------ */
+/* ---------- type ---------- */
 .display {
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: -0.005em;
-  line-height: 0.92;
+  font-family: var(--font-space), "Space Grotesk", sans-serif;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
 }
 
-.italic-accent {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.01em;
+.mono-label {
+  font-family: var(--font-mono), "DM Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .data {
-  font-family: var(--font-mono);
-  letter-spacing: -0.01em;
+  font-family: var(--font-mono), "DM Mono", monospace;
 }
 
-/* sculpt words: muted -> ink on hover */
-.sculpt {
-  color: #b9b3a5;
-  transition: color 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
+/* ---------- night sky (seeded stars — theme, not decoration) ---------- */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 0.85; }
 }
-.sculpt:hover {
-  color: #0a0a0a;
+.star {
+  position: absolute;
+  border-radius: 9999px;
+  background: #e9ecf3;
+  animation: twinkle var(--tw, 7s) ease-in-out infinite;
+  animation-delay: var(--td, 0s);
 }
 
-.ink-2 {
-  border: 2px solid #0a0a0a;
+/* ---------- mechanism pulse link ---------- */
+@keyframes pulse-dot {
+  0% { left: 0%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { left: calc(100% - 3px); opacity: 0; }
 }
-.ink-1 {
-  border: 1px solid #0a0a0a;
+.mech-link {
+  position: relative;
+  height: 1px;
+  background: rgba(233, 236, 243, 0.16);
+  overflow: hidden;
 }
-.dashed-line {
-  border-top: 1px dashed #b9b3a5;
+.mech-link::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #5fc9a8;
+  animation: pulse-dot 2.2s ease-in-out infinite;
+}
+
+/* ---------- FIG label ---------- */
+.fig {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.fig::before {
+  content: "";
+  width: 44px;
+  height: 1px;
+  background: #5fc9a8;
+  flex: none;
+}
+
+/* ---------- spec-sheet row ---------- */
+.sheet-row {
+  display: grid;
+  grid-template-columns: 110px 200px 1fr;
+  gap: 24px;
+  align-items: baseline;
+  border-bottom: 1px solid rgba(233, 236, 243, 0.08);
+  padding: 18px 0;
+}
+@media (max-width: 720px) {
+  .sheet-row { grid-template-columns: 1fr; gap: 6px; }
+}
+
+/* ---------- semantic chips ---------- */
+.chip-ok {
+  border: 1px solid rgba(95, 201, 168, 0.45);
+  background: rgba(95, 201, 168, 0.12);
+  color: #5fc9a8;
+}
+.chip-bad {
+  border: 1px solid rgba(224, 106, 94, 0.45);
+  background: rgba(224, 106, 94, 0.12);
+  color: #e06a5e;
+}
+
+/* ---------- cta ---------- */
+.btn-mint {
+  background: #5fc9a8;
+  color: #071018;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background 120ms ease, transform 120ms ease;
+}
+.btn-mint:hover {
+  background: #74d4b6;
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  border: 1px solid rgba(233, 236, 243, 0.2);
+  border-radius: 6px;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+.btn-ghost:hover {
+  border-color: #5fc9a8;
+  color: #5fc9a8;
 }

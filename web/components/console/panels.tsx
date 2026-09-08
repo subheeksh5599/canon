@@ -44,7 +44,7 @@ export function Sidebar({ current, onNav }: { current: Section; onNav: (s: Secti
             onClick={() => onNav(n.id)}
             className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
               current === n.id
-                ? "bg-[#d9ff00]/60 text-[#0b1a0e] border border-[#0b1a0e]/40"
+                ? "bg-[rgba(95,201,168,0.12)] text-[#5fc9a8] border border-[rgba(95,201,168,0.4)]"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
             }`}
           >
@@ -103,7 +103,7 @@ export function Overview({ bump }: { bump: number }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="display text-3xl font-semibold uppercase tracking-tight">The venue</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.03em]">The venue</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Agents transact here under terms the economy itself writes.
           </p>
@@ -135,7 +135,7 @@ export function Overview({ bump }: { bump: number }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base"><ScrollText className="size-4 text-[#0b1a0e]" /> Live memory journal</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base"><ScrollText className="size-4 text-[#5fc9a8]" /> Live memory journal</CardTitle>
             <CardDescription>Every decision the venue has recorded, chain-hashed in Sibyl.</CardDescription>
           </CardHeader>
           <CardContent className="max-h-80 space-y-1 overflow-auto pr-1">
@@ -144,7 +144,7 @@ export function Overview({ bump }: { bump: number }) {
                 <span className="w-8 text-muted-foreground">#{e.seq}</span>
                 <span className="flex-1 truncate">{e.acted}</span>
                 <span className="text-muted-foreground">{e.ts?.slice(11, 19)}</span>
-                <span className="text-[#0b1a0e]/60">{e.hash}</span>
+                <span className="text-[#5fc9a8]/60">{e.hash}</span>
               </div>
             ))}
           </CardContent>
@@ -152,7 +152,7 @@ export function Overview({ bump }: { bump: number }) {
 
         <Card className="border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base"><Layers className="size-4 text-[#0b1a0e]" /> What CANON is not</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base"><Layers className="size-4 text-[#5fc9a8]" /> What CANON is not</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {[
@@ -162,7 +162,7 @@ export function Overview({ bump }: { bump: number }) {
               ["Load-bearing", "Remove Sibyl and the venue cannot construct authoritative terms."],
             ].map(([k, v]) => (
               <div key={k} className="flex gap-3 rounded-lg border border-border bg-muted/30 p-3">
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#0b1a0e]" />
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#5fc9a8]" />
                 <div><div className="font-medium">{k}</div><div className="text-muted-foreground">{v}</div></div>
               </div>
             ))}
@@ -176,11 +176,11 @@ export function Overview({ bump }: { bump: number }) {
 export function TermsCard({ terms }: { terms: Terms }) {
   if (!terms) return null;
   return (
-    <Card className="border border-border bg-card ring-1 ring-[#0b1a0e]/20">
+    <Card className="border border-border bg-card ring-1 ring-[rgba(95,201,168,0.2)]">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">APPROVED under these terms</CardTitle>
-          <Badge className="rounded-full bg-[#d9ff00]/60 text-[#0b1a0e]">doctrine v{terms.doctrine_version}</Badge>
+          <Badge className="rounded-full bg-[rgba(95,201,168,0.12)] text-[#5fc9a8]">doctrine v{terms.doctrine_version}</Badge>
         </div>
         <CardDescription className="term-mono text-xs">{terms.rule_ids.join(", ") || "no doctrine — naive market terms"}</CardDescription>
       </CardHeader>
@@ -259,7 +259,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="display text-3xl font-semibold uppercase tracking-tight">New transaction</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em]">New transaction</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           The venue recalls collective precedent and constructs the deal. Nothing here is an LLM guess.
         </p>
@@ -275,7 +275,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
                   key={p}
                   onClick={() => setProvider(p)}
                   className={`rounded-lg border px-4 py-3 text-left transition-colors ${
-                    provider === p ? "border-[#0b1a0e]/50 bg-[#d9ff00]/60" : "border-border bg-muted/40 hover:bg-muted"
+                    provider === p ? "border-[rgba(95,201,168,0.5)] bg-[rgba(95,201,168,0.12)]" : "border-border bg-muted/40 hover:bg-muted"
                   }`}
                 >
                   <div className="text-sm font-medium">{ACTOR_LABEL[p]}</div>
@@ -311,7 +311,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
         <Card className="border-border">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <FileText className="size-4 text-[#0b1a0e]" /> {short(tx.tx_id, 16)}
+              <FileText className="size-4 text-[#5fc9a8]" /> {short(tx.tx_id, 16)}
               <Badge className="rounded-full">{tx.state}</Badge>
               {tx.chain_ref && <span className="term-mono text-[10px] text-muted-foreground">{short(tx.chain_ref, 12)}</span>}
             </CardTitle>
@@ -326,7 +326,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
                   Evidence:
                   {["TX_VERIFIED", "ATTESTATION", "TEXT"].map((s) => (
                     <button key={s} onClick={() => setEvidence(s)}
-                      className={`rounded px-2 py-0.5 ${evidence === s ? "bg-[#d9ff00]/60 text-[#0b1a0e]" : "hover:bg-muted"}`}>
+                      className={`rounded px-2 py-0.5 ${evidence === s ? "bg-[rgba(95,201,168,0.12)] text-[#5fc9a8]" : "hover:bg-muted"}`}>
                       {s.replace("_", " ")}
                     </button>
                   ))}
@@ -339,7 +339,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
       )}
 
       {claimRes && (
-        <Card className="border-[#b7791f]/30 bg-[#b7791f]/5">
+        <Card className="border-[rgba(95,201,168,0.4)] bg-[rgba(95,201,168,0.08)]">
           <CardContent className="space-y-2 p-5 text-sm">
             <div className="font-medium">Claim resolved — this becomes institutional memory</div>
             <div className="term-mono grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
@@ -368,7 +368,7 @@ export function Transactions({ bump }: { bump: number }) {
   }, [bump]);
   return (
     <div className="space-y-5">
-      <h1 className="display text-3xl font-semibold uppercase tracking-tight">Transactions</h1>
+      <h1 className="text-2xl font-semibold tracking-[-0.03em]">Transactions</h1>
       <Card className="border-border">
         <Table>
           <TableHeader>

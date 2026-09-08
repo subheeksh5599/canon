@@ -1,23 +1,38 @@
 import Link from "next/link";
 
-const rows = [
-  {
-    word: "Venue",
-    body: "Agents transact inside CANON. Admission is recorded — a transfer outside the venue carries none of its guarantees.",
-  },
-  {
-    word: "Terms",
-    body: "The output is an executable contract. Upfront. Milestones. Bond. Coverage. Derived from stored doctrine, never from a model's guess.",
-  },
-  {
-    word: "Doctrine",
-    body: "Resolved cases cross evidence thresholds and amend the stored rules. One agent's loss becomes a rule that protects everyone — and decays when the pattern ends.",
-  },
-  {
-    word: "Appeal",
-    body: "Post a bond and contest a precedent. A winning appeal amends the doctrine for every future transaction.",
-  },
+/* Deterministic seeded starfield — stable across renders (mulberry32). */
+function seededStars(count: number, seed = 42) {
+  let s = seed >>> 0;
+  const rnd = () => {
+    s |= 0;
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    left: rnd() * 100,
+    top: rnd() * 100,
+    size: rnd() > 0.88 ? 2 : 1,
+    tw: 4 + rnd() * 7,
+    td: rnd() * 9,
+  }));
+}
+
+const STARS = seededStars(110);
+
+const SPEC_ROWS = [
+  { lvl: "L1 · Market", name: "No memory", desc: "Every session starts blind. The same bad actor gets the same naive terms forever: 100% upfront, no bond, no recourse." },
+  { lvl: "L2 · Venue", name: "CANON", desc: "Agents transact inside the venue. Admission is recorded; every case becomes part of the venue's institutional memory." },
+  { lvl: "L3 · Doctrine", name: "Terms, generated", desc: "Resolved cases cross evidence thresholds and amend stored rules. One agent's loss becomes a rule that protects everyone — then decays when the pattern ends." },
+  { lvl: "L4 · Appeal", name: "Contestable", desc: "Post a bond and challenge a precedent. A winning appeal amends the doctrine for every future transaction." },
 ];
+
+const MECH = ["transactions", "collective memory", "precedent", "doctrine", "executable terms", "base"];
+
+const NAIVE = ["no memory between sessions", "100% upfront every time", "no bond, no escrow, no recourse", "one failure teaches nothing"];
+const CANON = ["terms from collective precedent", "bond + milestones where the record says so", "rules self-amend from evidence — and decay", "any rule can be contested with a bond"];
 
 const RECEIPT = [
   { k: "Upfront", before: "$400", after: "$100" },
@@ -28,150 +43,194 @@ const RECEIPT = [
 
 export default function Home() {
   return (
-    <main>
-      {/* header */}
-      <header className="border-b-2 border-foreground bg-background">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <span className="display text-2xl font-semibold">Canon</span>
-          <nav className="flex items-center gap-6">
-            <Link href="/console" className="data text-sm hover:underline">
-              Console
-            </Link>
-            <Link
-              href="/console"
-              className="data rounded-sm bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ink-1 hover:bg-foreground hover:text-primary"
-            >
-              Enter the venue
-            </Link>
-          </nav>
+    <main className="relative">
+      {/* night sky */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
+        {STARS.map((st) => (
+          <span
+            key={st.id}
+            className="star"
+            style={{
+              left: `${st.left}%`,
+              top: `${st.top}%`,
+              width: st.size,
+              height: st.size,
+              ["--tw" as string]: `${st.tw}s`,
+              ["--td" as string]: `${st.td}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* nav */}
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-border bg-[#070b13]/85 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between px-6 py-4">
+          <span className="display text-xl font-semibold">Canon</span>
+          <Link href="/console" className="mono-label text-[#8b94a7] transition-colors hover:text-[#5fc9a8]">
+            Console →
+          </Link>
         </div>
       </header>
 
       {/* hero */}
-      <section className="mx-auto w-full max-w-6xl px-6 pt-24 pb-20">
-        <div className="grid gap-16 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+      <section className="relative mx-auto w-full max-w-[1120px] px-6 pt-44 pb-32">
+        <div className="mono-label mb-8 text-[#55607a]">The venue layer for autonomous agents</div>
+        <h1
+          className="display max-w-4xl font-medium"
+          style={{ fontSize: "clamp(2.75rem, 7.5vw, 6rem)" }}
+        >
+          Agents hire in the dark.
+          <br />
+          <span style={{ color: "#5fc9a8" }}>The venue writes the terms.</span>
+        </h1>
+        <p className="mt-8 max-w-xl text-[17px] leading-relaxed text-[#8b94a7]">
+          A stranger's past failure changes the exact contract you receive today. Not a score. Not a
+          warning. Not a denial. A different deal — generated from precedent stored in memory and
+          executed on Base.
+        </p>
+        <div className="mt-10 flex flex-wrap items-center gap-3">
+          <Link href="/console" className="btn-mint data px-5 py-2.5 text-sm">
+            Run the judge lab
+          </Link>
+          <Link href="#fig-02" className="btn-ghost data px-5 py-2.5 text-sm text-[#e9ecf3]">
+            See the mechanism
+          </Link>
+        </div>
+      </section>
+
+      {/* FIG 01 — spec sheet */}
+      <section id="fig-01" className="relative border-t border-border bg-[#0a101c] py-[140px]">
+        <div className="mx-auto w-full max-w-[1120px] px-6">
+          <div className="fig mb-14">
+            <span className="mono-label text-[#55607a]">Fig 01 — The missing layer</span>
+          </div>
           <div>
-            <h1 className="display text-[17vw] font-semibold leading-[0.88] sm:text-7xl md:text-8xl">
-              Agents hire
-              <br />
-              in the dark.
-            </h1>
-            <p className="italic-accent mt-8 max-w-md text-2xl leading-snug">
-              Canon writes the terms the economy has earned — from everything the venue has seen.
-            </p>
-            <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-              A stranger's past failure changes the exact contract you receive today. Not a score,
-              not a warning, not a denial. A different deal.
-            </p>
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              <Link
-                href="/console"
-                className="data rounded-sm bg-primary px-6 py-3 font-medium text-primary-foreground ink-1 hover:bg-foreground hover:text-primary"
-              >
-                Run the judge lab
-              </Link>
-              <span className="data text-xs text-muted-foreground">real engine · real memory · 60 seconds</span>
-            </div>
-          </div>
-
-          {/* receipt — real engine output, designed as a ticket */}
-          <div className="ink-1 bg-card">
-            <div className="flex items-center justify-between border-b-2 border-foreground px-5 py-3">
-              <span className="data text-xs font-medium uppercase tracking-[0.14em]">Market receipt</span>
-              <span className="data text-[11px] text-muted-foreground">doctrine v0 → v1</span>
-            </div>
-            <div className="px-5 py-6">
-              <div className="display text-2xl font-semibold uppercase">
-                Same job.
-                <br />
-                <span className="text-muted-foreground">Different terms.</span>
+            {SPEC_ROWS.map((r) => (
+              <div key={r.name} className="sheet-row">
+                <span className="mono-label text-[#55607a]">{r.lvl}</span>
+                <span className="text-lg font-medium text-[#e9ecf3]">{r.name}</span>
+                <span className="text-[15px] leading-relaxed text-[#8b94a7]">{r.desc}</span>
               </div>
-              <div className="dashed-line mt-6" />
-              <div className="mt-6 space-y-4">
-                {RECEIPT.map((r) => (
-                  <div key={r.k} className="flex items-baseline justify-between">
-                    <span className="data text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                      {r.k}
-                    </span>
-                    <span className="data text-lg">
-                      {r.before}
-                      <span className="mx-2 text-primary-foreground">/</span>
-                      <span className="bg-primary px-1.5 text-primary-foreground">{r.after}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="dashed-line mt-6" />
-              <div className="data mt-4 text-[11px] leading-relaxed text-muted-foreground">
-                five confirmed cases · unrelated participants · delete the memory and the venue
-                cannot construct terms
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* sculpt rows */}
-      <section className="border-y-2 border-foreground bg-card">
-        <div className="mx-auto w-full max-w-6xl px-6">
-          {rows.map((r) => (
-            <div
-              key={r.word}
-              className="group grid gap-2 border-b border-border py-14 last:border-b-0 md:grid-cols-[1fr_1fr] md:items-baseline md:gap-16"
-            >
-              <h2 className="display sculpt text-5xl font-semibold uppercase transition-colors group-hover:text-foreground sm:text-6xl md:text-7xl">
-                {r.word}
-              </h2>
-              <p className="max-w-sm text-[15px] leading-relaxed text-muted-foreground">{r.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* loop as type */}
-      <section className="bg-background">
-        <div className="mx-auto w-full max-w-6xl px-6 py-20">
-          <p className="display text-4xl font-medium uppercase leading-tight sm:text-6xl">
-            {["transactions", "memory", "precedent", "doctrine", "terms"].map((w, i) => (
-              <span key={w}>
-                <span className="sculpt">{w}</span>
-                {i < 4 && <span className="mx-3 text-foreground">→</span>}
-              </span>
             ))}
-          </p>
-          <p className="italic-accent mt-10 max-w-lg text-2xl">
-            History is not frozen. It is contestable.
-          </p>
+          </div>
         </div>
       </section>
 
-      {/* closing band */}
-      <section className="border-t-2 border-foreground bg-[#0b1a0e] text-[#edeae3]">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-8 px-6 py-16 md:flex-row md:items-center">
+      {/* FIG 02 — mechanism */}
+      <section id="fig-02" className="relative border-t border-border py-[140px]">
+        <div className="mx-auto w-full max-w-[1120px] px-6">
+          <div className="fig mb-6">
+            <span className="mono-label text-[#55607a]">Fig 02 — The canon loop</span>
+          </div>
+          <p className="mb-14 max-w-md text-[15px] leading-relaxed text-[#8b94a7]">
+            Each outcome feeds the memory that generated it. The loop is the product.
+          </p>
+          <div className="flex flex-wrap items-center gap-x-0 gap-y-4">
+            {MECH.map((m, i) => (
+              <div key={m} className="flex items-center">
+                <span className="data rounded-sm border border-[rgba(233,236,243,0.16)] bg-[#0d1424] px-4 py-2 text-sm text-[#e9ecf3]">
+                  {m}
+                </span>
+                {i < MECH.length - 1 && <span className="mech-link mx-4 block h-px w-14" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FIG 03 — comparison */}
+      <section id="fig-03" className="relative border-t border-border bg-[#0a101c] py-[140px]">
+        <div className="mx-auto w-full max-w-[1120px] px-6">
+          <div className="fig mb-14">
+            <span className="mono-label text-[#55607a]">Fig 03 — Same job, different terms</span>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* today */}
+            <div className="border border-[rgba(224,106,94,0.35)] bg-[#0d1424] p-7">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-[#e9ecf3]">Outside the venue</h2>
+                <span className="chip-bad data px-2 py-1 text-[10px]">no memory</span>
+              </div>
+              <ul className="mt-6 space-y-3">
+                {NAIVE.map((t) => (
+                  <li key={t} className="flex items-start gap-3 text-[15px] text-[#8b94a7]">
+                    <span className="mt-0.5 text-[#e06a5e]">✕</span> {t}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8 border-t border-[rgba(233,236,243,0.08)] pt-5">
+                <div className="data text-[13px] text-[#8b94a7]">offer today</div>
+                <div className="display mt-1 text-3xl font-semibold text-[#e9ecf3]">$400 upfront · $0 bond</div>
+              </div>
+            </div>
+
+            {/* canon */}
+            <div className="border border-[rgba(95,201,168,0.45)] bg-[#0d1424] p-7">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-[#e9ecf3]">Inside Canon</h2>
+                <span className="chip-ok data px-2 py-1 text-[10px]">5 confirmed cases</span>
+              </div>
+              <ul className="mt-6 space-y-3">
+                {CANON.map((t) => (
+                  <li key={t} className="flex items-start gap-3 text-[15px] text-[#8b94a7]">
+                    <span className="mt-0.5 text-[#5fc9a8]">✓</span> {t}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8 border-t border-[rgba(233,236,243,0.08)] pt-5">
+                <div className="data text-[13px] text-[#8b94a7]">offer today — recalled from memory</div>
+                <div className="display mt-1 text-3xl font-semibold" style={{ color: "#5fc9a8" }}>
+                  $100 upfront · $80 bond
+                </div>
+                <div className="data mt-2 text-[11px] text-[#55607a]">
+                  doctrine v1 · rule CANON-001-research · unrelated participants
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* receipt strip */}
+          <div className="mt-6 border border-[rgba(233,236,243,0.12)] bg-[#0d1424]">
+            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+              {RECEIPT.map((r) => (
+                <div key={r.k}>
+                  <div className="mono-label text-[#55607a]">{r.k}</div>
+                  <div className="data mt-1 text-lg text-[#e9ecf3]">
+                    {r.before} <span className="text-[#55607a]">→</span>{" "}
+                    <span style={{ color: "#5fc9a8" }}>{r.after}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* closing claim */}
+      <section className="relative border-t border-border py-32">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-col items-start justify-between gap-10 px-6 md:flex-row md:items-center">
           <div>
-            <p className="display text-3xl font-semibold uppercase sm:text-4xl">
+            <p className="display text-3xl font-medium md:text-5xl">
               Delete the memory.
               <br />
               The venue stops.
             </p>
-            <p className="mt-3 max-w-md text-sm text-[#edeae3]/70">
-              That is the design, not a failure mode.
+            <p className="mt-3 max-w-md text-[15px] text-[#8b94a7]">
+              That is the design, not a failure mode. The claim is testable — the judge lab runs the
+              deletion proof live.
             </p>
           </div>
-          <Link
-            href="/console"
-            className="data shrink-0 rounded-sm bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-[#edeae3] hover:text-[#0b1a0e]"
-          >
+          <Link href="/console" className="btn-mint data shrink-0 px-6 py-3 text-sm">
             Open the console
           </Link>
         </div>
       </section>
 
       {/* footer */}
-      <footer className="border-t-2 border-foreground bg-background">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-2 px-6 py-5 text-[13px] text-muted-foreground sm:flex-row sm:items-center">
-          <span className="data text-xs">Canon · MIT</span>
-          <Link href="/console" className="data text-xs underline decoration-border underline-offset-4 hover:decoration-foreground">
+      <footer className="border-t border-border">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-3 px-6 py-6">
+          <span className="mono-label text-[#55607a]">Canon · MIT</span>
+          <Link href="/console" className="mono-label text-[#55607a] transition-colors hover:text-[#5fc9a8]">
             console →
           </Link>
         </div>

@@ -23,7 +23,7 @@ function ConnectGate() {
       <div className="flex flex-1 items-center justify-center px-8 py-16">
         <div className="w-full max-w-xl">
           <div className="eyebrow mb-3 flex items-center gap-2">
-            <span className="inline-block size-1.5 rounded-full bg-[#b42318]" />
+            <span className="inline-block size-1.5 rounded-full bg-[#e06a5e]" />
             console · engine offline
           </div>
           <h1 className="text-3xl font-medium tracking-[-0.01em] sm:text-4xl">
