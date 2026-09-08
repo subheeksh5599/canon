@@ -25,7 +25,7 @@ export function DoctrineView({ bump }: { bump: number }) {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-semibold tracking-tight">The doctrine</h1>
+      <h1 className="display text-3xl font-semibold uppercase tracking-tight">The doctrine</h1>
       <p className="text-sm text-muted-foreground">
         Rules are born from case evidence, amended by appeals, refreshed by supporting cases, and
         retired by decay. Every version is stored in Sibyl with a checksum — the stored rule, not the
@@ -75,7 +75,7 @@ export function DoctrineView({ bump }: { bump: number }) {
       {(doc?.versions?.length ?? 0) > 1 && (
         <Card className="border-border bg-muted/20">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base"><History className="size-4 text-[#0e7a52]" /> Version history</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base"><History className="size-4 text-[#0b1a0e]" /> Version history</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {doc!.versions.map((v: any) => (
@@ -128,7 +128,7 @@ export function AppealsView({ bump, onChanged }: { bump: number; onChanged: () =
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-semibold tracking-tight">Appeals — contestable doctrine</h1>
+      <h1 className="display text-3xl font-semibold uppercase tracking-tight">Appeals — contestable doctrine</h1>
       <p className="text-sm text-muted-foreground">
         Post a bond, challenge a precedent. A rejected appeal forfeits the bond to the pool; an
         accepted appeal amends the doctrine for every future transaction.
@@ -230,7 +230,7 @@ function ProofCard({ title, note, run, kind }: { title: string; note: string; ru
     <Card className="border-border">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
-          <ShieldCheck className="size-4 text-[#0e7a52]" /> {title}
+          <ShieldCheck className="size-4 text-[#0b1a0e]" /> {title}
         </CardTitle>
         <CardDescription>{note}</CardDescription>
       </CardHeader>
@@ -239,7 +239,7 @@ function ProofCard({ title, note, run, kind }: { title: string; note: string; ru
         {res && (
           <div className="term-mono rounded-lg border border-border bg-black/25 p-3 text-[11px] leading-relaxed">
             {res.pass_ !== undefined && (
-              <div className={`mb-1 font-semibold ${res.pass_ ? "text-[#0e7a52]" : "text-[#b42318]"}`}>
+              <div className={`mb-1 font-semibold ${res.pass_ ? "text-[#0b1a0e]" : "text-[#b42318]"}`}>
                 {res.pass_ ? "PROOF PASS" : "PROOF FAIL"}
               </div>
             )}
@@ -271,7 +271,7 @@ function ProofCard({ title, note, run, kind }: { title: string; note: string; ru
 export function JudgeLab({ bump }: { bump: number }) {
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-semibold tracking-tight">Judge lab</h1>
+      <h1 className="display text-3xl font-semibold uppercase tracking-tight">Judge lab</h1>
       <p className="text-sm text-muted-foreground">
         Every button runs the real engine against real Sibyl memory. No canned output, no precomputed
         strings.

@@ -36,7 +36,7 @@ function ConnectGate() {
           </p>
 
           <div className="mt-8 space-y-3">
-            <div className="paper rounded-lg px-5 py-4">
+            <div className="border border-border bg-card rounded-sm px-5 py-4">
               <div className="eyebrow mb-2">Step 1 · start the venue</div>
               <div className="flex items-center justify-between gap-3">
                 <code className="term-mono truncate text-[13px]">
@@ -47,13 +47,13 @@ function ConnectGate() {
                 </button>
               </div>
             </div>
-            <div className="paper rounded-lg px-5 py-4">
+            <div className="border border-border bg-card rounded-sm px-5 py-4">
               <div className="eyebrow mb-2">Step 2 · open the console beside it</div>
               <code className="term-mono block truncate text-[13px]">
                 cd web && npm run dev &nbsp;→&nbsp; http://localhost:3000/console
               </code>
             </div>
-            <div className="paper rounded-lg px-5 py-4">
+            <div className="border border-border bg-card rounded-sm px-5 py-4">
               <div className="flex items-start gap-3">
                 <TerminalSquare className="mt-0.5 size-4 shrink-0" />
                 <div className="text-sm text-muted-foreground">
