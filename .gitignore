@@ -49,3 +49,6 @@ deployments.local/
 *.log
 .idea/
 .vscode/
+
+# Foundry dependency (reinstall with: cd contracts && forge install foundry-rs/forge-std)
+contracts/lib/
