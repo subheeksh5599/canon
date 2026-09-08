@@ -327,11 +327,11 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 | USDC escrow lock, claim payout, appeal bond on Base Sepolia | ✅ REAL — CanonMarket deployed; tx hashes + balances above |
 | Console + API served live | ✅ REAL — Vercel → venue server on the VPS (systemd), proxied `/api/*` |
 | Contract tested | ✅ REAL — 20-test Foundry battery on the local EVM |
-| Founding history (the 5 resolved failures that create doctrine v1) | ⚠️ SYNTHETIC SEED — `scripts/seed_history.py`, deterministic and labeled; a real venue's memory would start with actual cases. The doctrine it produces is then applied to real money. |
-| Agent counterparties | ⚠️ REAL EOAs, demo-driven — buyer/provider/judge are real wallets; their "behavior" (delivering/failing) is triggered from the console, not by live autonomous agents |
-| Settlement wallet | ⚠️ TESTNET USDC (Base Sepolia) — testnet funds; same contract, same code, same math as mainnet |
-| Venue/adjudicator role split | ⚠️ ONE OPERATOR KEY in the demo — split-ready via `setRoles` |
-| Contract source verification on Basescan | 📋 PENDING — deployed and functional; source verification is a click away |
+| Founding history (the 5 resolved failures that create doctrine v1) | ⚠️ SYNTHETIC SEED — `scripts/seed_history.py`, deterministic and labeled; see "Engineering decisions" for the two real-founding options |
+| Agent counterparties | ✅ REAL — buyer/provider/judge are real keyed EOAs that appear on-chain in every settlement; claim evidence is TX_VERIFIED chain truth, not script assertions. Job outcomes (delivered/failed) are initiated from the console — the venue consumes evidence-gated outcomes, and full agent autonomy is future work (Limitations) |
+| Settlement wallet | ✅ REAL USDC settlement on Base Sepolia — testnet funds by design; identical contract, code, and math on mainnet (env-only change) |
+| Venue/adjudicator role split | ✅ REAL split wired in code — `ADJUDICATOR_KEY` routes claims/appeals to a separate signer wallet (`0x617B…3046`); the on-chain `setRoles` split executes once that wallet holds gas ETH |
+| Contract source verification on Basescan | ✅ REAL — Sourcify [`exact_match`](https://sourcify.dev/#/lookup/0x802d15d159B15F91f1663D2b86e90132F6da4D06) (creation + runtime) and Blockscout [`Pass - Verified`](https://base-sepolia.blockscout.com/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06#code) |
 
 ## Tests
 

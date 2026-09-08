@@ -91,17 +91,23 @@ class ChainError(Exception):
 
 
 class Chain:
-    def __init__(self, rpc: str, key: str, market: str, token: str = USDC_BASE_SEPOLIA):
+    def __init__(self, rpc: str, key: str, market: str, token: str = USDC_BASE_SEPOLIA,
+                 adjudicator_key: Optional[str] = None):
         self.w3 = Web3(Web3.HTTPProvider(rpc))
         if not self.w3.is_connected():
             raise ChainError(f"cannot reach {rpc}")
         self.key = key
         self.venue = Web3.to_checksum_address(self.w3.eth.account.from_key(key).address)
+        self.adj_key = adjudicator_key or key
+        self.adjudicator = Web3.to_checksum_address(
+            self.w3.eth.account.from_key(self.adj_key).address)
         self.market = Web3.to_checksum_address(market)
         self.token = Web3.to_checksum_address(token)
         self._market_c = self.w3.eth.contract(address=self.market, abi=MARKET_ABI)
         self._token_c = self.w3.eth.contract(address=self.token, abi=ERC20_ABI)
         self.chain_id = self.w3.eth.chain_id
+        # separate serialization per signer EOA (nonce integrity per key)
+        self._locks: dict[str, threading.Lock] = {}
 
     # ------------------------------------------------------------- reads
     def usdc_balance(self, who: Optional[str] = None) -> Decimal:
@@ -124,19 +130,23 @@ class Chain:
     # ------------------------------------------------------------- send
     _tx_lock = threading.Lock()
 
-    def _send(self, fn, label: str) -> str:
-        # one venue signer: serialize nonce read -> send -> receipt so two
+    def _send(self, fn, label: str, as_adjudicator: bool = False) -> str:
+        # one signer per EOA: serialize nonce read -> send -> receipt so two
         # concurrent calls can never reuse a nonce ("replacement underpriced")
-        with self._tx_lock:
+        signer_addr = self.adjudicator if as_adjudicator else self.venue
+        key = self.adj_key if as_adjudicator else self.key
+        lock = self._locks.setdefault(signer_addr.lower(), threading.Lock())
+        with lock:
             try:
                 tx = fn.build_transaction({
-                    "from": self.venue, "nonce": self.w3.eth.get_transaction_count(self.venue),
+                    "from": signer_addr,
+                    "nonce": self.w3.eth.get_transaction_count(signer_addr),
                     "gas": GAS, "gasPrice": self.w3.eth.gas_price,
                     "chainId": self.chain_id,
                 })
             except ContractLogicError as e:
                 raise ChainError(f"{label}: {e}") from e
-            signed = self.w3.eth.account.sign_transaction(tx, self.key)
+            signed = self.w3.eth.account.sign_transaction(tx, key)
             h = self.w3.eth.send_raw_transaction(signed.raw_transaction)
             rcpt = self.w3.eth.wait_for_transaction_receipt(h, timeout=90, poll_latency=2)
             if rcpt.status != 1:
@@ -184,7 +194,7 @@ class Chain:
         return self._send(self._market_c.functions.resolveClaim(
             contract_id, Web3.to_checksum_address(payee),
             self.usd_to_units(escrow_refund_usd), self.usd_to_units(coverage_usd)),
-            "resolveClaim")
+            "resolveClaim", as_adjudicator=True)
 
     def open_appeal(self, challenger: str, rule_id: str, bond_usd: float) -> tuple[int, str]:
         self._ensure_allowance()
@@ -199,7 +209,7 @@ class Chain:
 
     def resolve_appeal(self, appeal_id: int, accepted: bool) -> str:
         return self._send(self._market_c.functions.resolveAppeal(
-            appeal_id, accepted, accepted), "resolveAppeal")
+            appeal_id, accepted, accepted), "resolveAppeal", as_adjudicator=True)
 
 
 _chain: Optional[Chain] = None
@@ -220,16 +230,18 @@ def load_env_file(path: Path | str | None = None) -> None:
 
 
 def env_chain() -> Chain:
-    """Build from env: BASE_RPC_URL, SETTLE_KEY, CANONMARKET_ADDRESS."""
+    """Build from env: BASE_RPC_URL, SETTLE_KEY, CANONMARKET_ADDRESS,
+    optional ADJUDICATOR_KEY (split-role signer for claims/appeals)."""
     global _chain, _configured
     key = os.environ.get("SETTLE_KEY", "").strip()
     market = os.environ.get("CANONMARKET_ADDRESS", "").strip()
     rpc = os.environ.get("BASE_RPC_URL", RPC_DEFAULT).strip()
+    adj_key = os.environ.get("ADJUDICATOR_KEY", "").strip() or None
     if not key or not market:
         _configured = False
         raise ChainError("chain not configured: SETTLE_KEY and CANONMARKET_ADDRESS env required")
     if _chain is None or _configured is False:
-        _chain = Chain(rpc, key, market)
+        _chain = Chain(rpc, key, market, adjudicator_key=adj_key)
         _configured = True
     return _chain
 
