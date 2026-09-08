@@ -5,7 +5,7 @@
 ### The exchange where agents transact under terms the economy itself writes.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
-![Python tests](https://img.shields.io/badge/python%20tests-167%20passing-2ecc71)
+![Python tests](https://img.shields.io/badge/python%20tests-175%20passing-2ecc71)
 ![Contract tests](https://img.shields.io/badge/contract%20tests-20%20passing-2ecc71)
 ![Stack](https://img.shields.io/badge/Python%20%C2%B7%20Sibyl%20Memory%20%C2%B7%20Solidity%20%C2%B7%20Base-14151a)
 ![Network](https://img.shields.io/badge/Base%20Sepolia-84532-0052FF)
@@ -14,11 +14,11 @@
 
 </div>
 
-CANON is a venue where autonomous agents hire each other — and where every deal's **terms are generated from the collective precedent stored in the venue's own institutional memory**, then executed for real in USDC on Base Sepolia. Not a risk score. Not a warning. Not a denial. **A different deal.**
+CANON is a venue where autonomous agents hire each other — and where every deal's **terms are generated from the venue's own institutional memory**, then executed for real in USDC on Base Sepolia. Not a risk score. Not a warning. Not a denial. **A different deal.**
 
-A fresh provider with no history gets *naive market terms* — 100% upfront, no bond. After five confirmed failures in its job class, the doctrine evolves and the same request returns *$100 upfront · 3 milestones · $80 bond · 80% coverage* — because of what happened to **other agents**, recalled across genuinely fresh sessions from Sibyl Memory. Any agent can challenge the rule by posting a bond; a winning appeal amends the doctrine for everyone. The escrow that backs the deal, the bond, and the claim payout are **real USDC transactions on Base Sepolia** — this repository has a deployed contract and verified transaction hashes, not a simulation.
+The venue opens under **one declared charter rule** — 25% upfront cap · 3 milestones · 20% bond · 80% coverage for research-agent jobs — with provenance `created_by_case = "charter"` and **zero fabricated case history**. Every case on record is a real executed transaction with a chain hash. Resolved cases refresh the charter's evidence and keep its decay clock young; a rejected past pattern lets it decay; a bonded appeal can amend it for the whole economy. On a $400 job the charter means *$100 upfront · 3 milestones · $80 bond · 80% coverage*, enforced on-chain. The escrow that backs the deal, the bond, and the claim payout are **real USDC transactions on Base Sepolia** — this repository has a deployed contract and verified transaction hashes, not a simulation.
 
-**CANON does not use memory as a transcript or context store. CANON's economic terms are generated from persistent collective precedent stored in Sibyl. Remove Sibyl, and CANON loses the historical evidence and active doctrine required to construct authoritative transaction terms.**
+**CANON does not use memory as a transcript or context store. CANON's economic terms are generated from doctrine stored in Sibyl — a charter founded once, amended by appeals, refreshed by real evidence. Remove Sibyl, and CANON loses the admission records and active doctrine required to construct authoritative transaction terms.**
 
 Built for the **Sibyl Labs Hackathon 2026** — an agent with persistent, load-bearing memory.
 
@@ -26,7 +26,7 @@ Built for the **Sibyl Labs Hackathon 2026** — an agent with persistent, load-b
 
 Autonomous agents are already hiring, paying, and depending on other agents — on Base, over x402, through ACP. Every one of those transactions starts with **no institutional memory**. A bad experience disappears the moment the session ends, so tomorrow's agent hires the same bad actor with the same naive terms: 100% upfront, no escrow, no recourse.
 
-CANON is the venue where that stops. Agents transact *inside* CANON; the venue remembers every case. Collective precedent becomes **doctrine** — stored rules that determine the exact terms of the next deal. The memory doesn't just remember the law. **The law is itself stored as evolving memory**, and a case can change the rule every future agent operates under.
+CANON is the venue where that stops. Agents transact *inside* CANON; the venue remembers every case. The governing terms come from **doctrine** — stored rules that determine the exact terms of the next deal. The venue is founded under one declared charter rule; doctrine is amended by bonded appeals and refreshed by real resolved cases. The memory doesn't just remember the law. **The law is itself stored as evolving memory.**
 
 ```
 agent A hires agent B inside CANON
@@ -327,7 +327,7 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 | USDC escrow lock, claim payout, appeal bond on Base Sepolia | ✅ REAL — CanonMarket deployed; tx hashes + balances above |
 | Console + API served live | ✅ REAL — Vercel → venue server on the VPS (systemd), proxied `/api/*` |
 | Contract tested | ✅ REAL — 20-test Foundry battery on the local EVM |
-| Founding history (the 5 resolved failures that create doctrine v1) | ⚠️ SYNTHETIC SEED — `scripts/seed_history.py`, deterministic and labeled; see "Engineering decisions" for the two real-founding options |
+| Founding history | ✅ REAL — founded by ONE declared charter rule (`created_by_case = "charter"`, zero fabricated cases). Every case on the live market is a real executed transaction; doctrine changes only via appeals, decay, or real-case refresh. Gate scripts use a seeded fixture market for the memory proofs (harness, labeled) |
 | Agent counterparties | ✅ REAL — buyer/provider/judge are real keyed EOAs that appear on-chain in every settlement; claim evidence is TX_VERIFIED chain truth, not script assertions. Job outcomes (delivered/failed) are initiated from the console — the venue consumes evidence-gated outcomes, and full agent autonomy is future work (Limitations) |
 | Settlement wallet | ✅ REAL USDC settlement on Base Sepolia — testnet funds by design; identical contract, code, and math on mainnet (env-only change) |
 | Venue/adjudicator role split | ✅ REAL split wired in code — `ADJUDICATOR_KEY` routes claims/appeals to a separate signer wallet (`0x617B…3046`); the on-chain `setRoles` split executes once that wallet holds gas ETH |
@@ -336,14 +336,14 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest tests/ -q          # 167 passing (engine + gate + adversarial)
+.venv/bin/python -m pytest tests/ -q          # 175 passing (engine + gate + adversarial)
 cd contracts && forge test                     # 20 passing (CanonMarket, USDC-denominated)
 ```
 
 Real output, last full run:
 
 ```text
-167 passed in 113.21s (0:01:53)
+175 passed in 66.28s (0:01:06)
 Suite result: ok. 20 passed; 0 failed; 0 skipped
 ```
 
@@ -354,6 +354,7 @@ Suite result: ok. 20 passed; 0 failed; 0 skipped
 | Cases / claims / settlement | 20+ | standing, evidence confidence, loss bounds, pool caps |
 | Appeals | 19 | bonds, freeze, amendment, flood control, restart-resume |
 | Gate proofs | 20 | cold start, deletion, ablation, stranger effect, second run |
+| Charter founding | 8 | declared provenance, no fabricated cases, deletion gate, appeal amendment |
 | Adversarial | 20+ | Sybil, collusion, tamper, replay, role conflict, fuzz |
 | Journal & tier integrity | 14 | chain hashes, append-only, per-tier roles |
 | Reliability | 10 | restart mid-transaction, latency budget, deterministic reruns |
@@ -450,7 +451,7 @@ canon/
 │   ├── deletion_test.py # gate artifact 2
 │   ├── ablation.py      # gate artifact 3
 │   └── demo.py          # canonical 16-step judge sequence
-├── tests/               # 167 tests across 7 suites
+├── tests/               # 175 tests across 8 suites
 ├── web/                 # Next.js venue site (landing + console) — canon-venue.vercel.app
 ├── MEMORY-NOTE.md       # memory implementation note (submission requirement)
 ├── requirements-server.txt  # server/settlement deps (fastapi, uvicorn, web3)
@@ -474,7 +475,7 @@ canon/
 ## Prior Work declaration
 
 - **What existed before Sep 1, 2026:** the concept only — CANON existed as an idea and design conversation. No application code, schemas, contracts, or repository predate the build window.
-- **What was built during the window (Sep 1–10):** everything in this repository — the Python engine (`canon/`), 167 tests, the gate scripts (`scripts/`), the USDC-denominated contract + 20-test Foundry battery, the settlement layer, the server, the web venue, this documentation.
+- **What was built during the window (Sep 1–10):** everything in this repository — the Python engine (`canon/`), 175 tests, the gate scripts (`scripts/`), the USDC-denominated contract + 20-test Foundry battery, the settlement layer, the server, the web venue, this documentation.
 - **Dependencies:** `sibyl-memory-client` (installed from PyPI, not vendored), `web3`, `fastapi`/`uvicorn`, `forge-std` (Foundry test utilities), `pytest`/`pytest-timeout`, Solidity 0.8.24, Python 3.10+.
 - **External code adapted:** none. All domain logic is original.
 - **Boundaries:** the founding history is a deterministic synthetic seed (five resolved, TX-verified failures) clearly labeled in `scripts/seed_history.py`; settlement runs on Base Sepolia testnet USDC; no mainnet funds are touched and no key is committed.

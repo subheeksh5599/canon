@@ -53,6 +53,39 @@ class Canon:
     def admit(self, agent: str) -> Any:
         return self.venue.admit(agent)
 
+    def establish_charter(self, *, rule_id: str = "CANON-001-research",
+                          job_class: str = "research",
+                          upfront_cap_ratio: float = 0.25,
+                          milestone_count_min: int = 3,
+                          bond_ratio: float = 0.20,
+                          coverage_ratio: float = 0.80) -> Any:
+        """Found the venue with ONE declared charter rule — provenance is the
+        charter itself (created_by_case='charter', zero fabricated case
+        evidence). Every case subsequently recorded is a real executed
+        transaction; the charter is amended only by appeals or decay."""
+        from .types import Rule, Doctrine
+        if self.doctrine.current_doctrine().version > 0:
+            return None  # already founded
+        rule = Rule(
+            rule_id=rule_id,
+            job_classes=[job_class],
+            require_new_counterparty=False,
+            min_supporting_cases=0,
+            supporting_case_ids=[],
+            created_by_case="charter",  # provenance: declared founding policy, not case evidence
+            effective_at=self.clock.iso(),
+            upfront_cap_ratio=upfront_cap_ratio,
+            milestone_count_min=milestone_count_min,
+            bond_ratio=bond_ratio,
+            coverage_ratio=coverage_ratio,
+        )
+        doc = Doctrine(version=1, rules=[rule], effective_at=self.clock.iso(),
+                       supersedes=None, activated_by_case="charter")
+        self.doctrine.persist(doc)
+        self._seam.write_event(acted="venue", evaluated={"version": 1, "rule_id": rule_id},
+                               extra={"event": "DOCTRINE_CHARTER", "rule_id": rule_id})
+        return doc
+
     def evaluate(self, *, buyer: str, provider: str, job_type: str,
                  job_value_usd: float) -> Terms:
         """The heart: recall collective precedent -> current doctrine ->

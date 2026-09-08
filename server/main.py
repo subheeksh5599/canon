@@ -36,7 +36,8 @@ from canon.chain import ChainError, configured as chain_configured, env_chain, e
 from scripts.seed_history import BUYER, PROVIDER, PROVIDER2, JUDGE, seed
 
 ROOT = Path(__file__).resolve().parent.parent
-DEMO_DB = Path(tempfile.gettempdir()) / "canon-server.db"
+# Persistent venue DB (env CANON_DB overrides; the live venue must not live in /tmp)
+DEMO_DB = Path(os.environ.get("CANON_DB", str(Path(tempfile.gettempdir()) / "canon-server.db")))
 
 # Load settlement env from the gitignored local env file (VPS uses systemd
 # EnvironmentFile with the same keys). Never overrides real environment.
@@ -60,13 +61,17 @@ market: dict[str, Any] = {"chain": {}}  # engine_id -> contract mirror registry
 
 
 def fresh_market() -> Canon:
-    """Load the persistent demo market; only seed history when the file is
-    empty/fresh — never re-seed on top of existing state (restart-safe)."""
+    """Load the persistent venue market; a genuinely empty file is FOUNDED by
+    charter (one declared rule, zero fabricated case evidence — see
+    Canon.establish_charter). Never re-seeds on top of existing state."""
+    DEMO_DB.parent.mkdir(parents=True, exist_ok=True)
     if DEMO_DB.exists() and DEMO_DB.stat().st_size > 0:
         canon = Canon(DEMO_DB)
     else:
         canon = Canon(DEMO_DB)
-        seed(canon)
+        canon.establish_charter()
+        for actor in (BUYER, PROVIDER, PROVIDER2, JUDGE):
+            canon.admit(actor)
     market["canon"] = canon
     market["txids"] = []
     market["chain"] = {}
