@@ -251,8 +251,9 @@ cd web && npm install && npm run dev
 
 The console drives the live engine: evaluate → doctrine terms → create & fund → delivered/failed →
 claim → doctrine changes → judge lab (cold start / deletion / ablation) — all real engine calls, no
-mocks. Local demo settlements use a labeled simulated chain reference until a Base Sepolia deployer
-key is provided (the CanonMarket contract is tested and deployment-ready).
+mocks. Settlement is REAL: every money event executes on Base Sepolia in USDC
+(CanonMarket at 0x802d15d159B15F91f1663D2b86e90132F6da4D06, chain 84532) and the console links
+each escrow lock / payout to its Basescan transaction.
 
 ## Gate artifacts
 
@@ -319,8 +320,13 @@ The engine's ledger (`canon/ledger.py`) is the memory-side mirror of the contrac
 ## Limitations
 
 - **One vertical by design**: ACP software/research-agent contracts on the `acp-research` jurisdiction. Multi-jurisdiction doctrine propagation is documented but not built — the memory axis is proven on one spine instead of faked across many.
-- **The ledger is a mirror, not yet a live rail**: the Python ledger and the Solidity contract are separately tested; the bridge (venue → contract calls) is the remaining integration and needs a funded Sepolia key.
-- **Settlement is simulated locally**: until a funded Base Sepolia deployer key is loaded, the console marks on-chain execution with a labeled local reference; the CanonMarket contract itself is fully tested.
+- **The ledger is the venue's accounting mirror; the chain is authoritative**: the Python ledger
+  tracks obligations for doctrine/claims logic; every settlement event (escrow lock, milestone
+  release, claim payout, appeal bond/forfeit) executes as a genuine USDC transfer on Base Sepolia,
+  and the console shows the real transaction hashes.
+- **Live on Base Sepolia**: CanonMarket `0x802d15d159B15F91f1663D2b86e90132F6da4D06` is deployed
+  (chain 84532, USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`); venue and adjudicator roles are
+  held by the operator key in the demo and can be split via `setRoles`.
 - **Decay is time-based, not outcome-weighted**: a rule's status ages on a fixed schedule refreshed by supporting cases; per-actor outcome weighting beyond the counterparty file is future work.
 - **Proven at evaluation time**: terms are generated from the doctrine current when the transaction is evaluated; a funded transaction's terms are immutable (asserted by `test_t016`), so mid-job doctrine changes never rewrite a live deal.
 

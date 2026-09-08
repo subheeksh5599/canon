@@ -48,12 +48,25 @@ app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
 
+
+@app.exception_handler(Exception)
+async def unhandled_to_json(_, exc: Exception):
+    """Never return a bare 500 shell — surface the real reason to the console."""
+    from fastapi.responses import JSONResponse
+    return JSONResponse(status_code=500,
+                        content={"error": f"{type(exc).__name__}: {exc}"})
+
 market: dict[str, Any] = {"chain": {}}  # engine_id -> contract mirror registry
 
 
 def fresh_market() -> Canon:
-    canon = Canon(DEMO_DB)
-    seed(canon)
+    """Load the persistent demo market; only seed history when the file is
+    empty/fresh — never re-seed on top of existing state (restart-safe)."""
+    if DEMO_DB.exists() and DEMO_DB.stat().st_size > 0:
+        canon = Canon(DEMO_DB)
+    else:
+        canon = Canon(DEMO_DB)
+        seed(canon)
     market["canon"] = canon
     market["txids"] = []
     market["chain"] = {}

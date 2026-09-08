@@ -15,6 +15,7 @@ Contract topology (CanonMarket.sol):
 from __future__ import annotations
 
 import os
+import threading
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Optional
@@ -121,21 +122,26 @@ class Chain:
                 "status": st, "terms_digest": digest}
 
     # ------------------------------------------------------------- send
+    _tx_lock = threading.Lock()
+
     def _send(self, fn, label: str) -> str:
-        try:
-            tx = fn.build_transaction({
-                "from": self.venue, "nonce": self.w3.eth.get_transaction_count(self.venue),
-                "gas": GAS, "gasPrice": self.w3.eth.gas_price,
-                "chainId": self.chain_id,
-            })
-        except ContractLogicError as e:
-            raise ChainError(f"{label}: {e}") from e
-        signed = self.w3.eth.account.sign_transaction(tx, self.key)
-        h = self.w3.eth.send_raw_transaction(signed.raw_transaction)
-        rcpt = self.w3.eth.wait_for_transaction_receipt(h, timeout=90, poll_latency=2)
-        if rcpt.status != 1:
-            raise ChainError(f"{label}: reverted {h.hex()}")
-        return h.hex()
+        # one venue signer: serialize nonce read -> send -> receipt so two
+        # concurrent calls can never reuse a nonce ("replacement underpriced")
+        with self._tx_lock:
+            try:
+                tx = fn.build_transaction({
+                    "from": self.venue, "nonce": self.w3.eth.get_transaction_count(self.venue),
+                    "gas": GAS, "gasPrice": self.w3.eth.gas_price,
+                    "chainId": self.chain_id,
+                })
+            except ContractLogicError as e:
+                raise ChainError(f"{label}: {e}") from e
+            signed = self.w3.eth.account.sign_transaction(tx, self.key)
+            h = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+            rcpt = self.w3.eth.wait_for_transaction_receipt(h, timeout=90, poll_latency=2)
+            if rcpt.status != 1:
+                raise ChainError(f"{label}: reverted {h.hex()}")
+            return h.hex()
 
     def _ensure_allowance(self) -> None:
         cur = self._token_c.functions.allowance(self.venue, self.market).call()
