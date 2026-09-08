@@ -1,0 +1,51 @@
+# CANON internal planning docs — never commit to the public repo
+CANON-SPEC.md
+CANON-TESTS.md
+CANON-COMMITS.md
+*.checklist.md
+*runbook*.md
+
+# Secrets / environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+kage*wallet*
+*backup*.txt
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Build output
+dist/
+build/
+out/
+cache/
+coverage/
+*.tsbuildinfo
+
+# Sibyl / memory local state
+*.db
+*.db-journal
+*.sqlite
+.sibyl*/
+~/.sibyl*/
+
+# Foundry
+forge-artifacts/
+broadcast/
+foundry-cache/
+
+# Deploy config with addresses/hashes (generated)
+deployments.local/
+
+# OS/editor noise
+.DS_Store
+*.log
+.idea/
+.vscode/
