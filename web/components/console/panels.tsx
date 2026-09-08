@@ -30,7 +30,7 @@ const NAV: { id: Section; label: string; icon: typeof Activity }[] = [
 
 export function Sidebar({ current, onNav }: { current: Section; onNav: (s: Section) => void }) {
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-[#080b11] px-3 py-5">
+    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-sidebar px-3 py-5">
       <div className="flex items-center gap-2 px-2 pb-6">
         <span className="term-mono text-lg font-semibold tracking-tight">CANON</span>
         <span className="rounded border border-border px-1.5 py-0.5 text-[9px] uppercase tracking-widest text-muted-foreground">
@@ -44,7 +44,7 @@ export function Sidebar({ current, onNav }: { current: Section; onNav: (s: Secti
             onClick={() => onNav(n.id)}
             className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
               current === n.id
-                ? "bg-emerald-500/10 text-emerald-200 border border-emerald-400/20"
+                ? "bg-[#0e7a52]/10 text-[#0e7a52] border border-[#0e7a52]/25"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
             }`}
           >
@@ -65,16 +65,18 @@ type Status = { doctrine_version: number; cases: number; pool: number; journal_o
 
 export function Overview({ bump }: { bump: number }) {
   const [st, setSt] = useState<Status | null>(null);
+  const [down, setDown] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
   const load = useCallback(async () => {
     try {
       const s = await api<{ ok: true } & Status>("/api/status");
       setSt(s);
+      setDown(false);
       const m = await api<{ events: any[] }>("/api/memory");
       setEvents(m.events.slice(0, 14));
-    } catch (e: any) {
-      toast.error(`Backend unreachable — start it with uvicorn server.main:app --port 8000 (${e.message})`);
+    } catch {
+      setDown(true);
     }
   }, []);
   useEffect(() => { load(); }, [load, bump]);
@@ -113,7 +115,7 @@ export function Overview({ bump }: { bump: number }) {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((s) => (
-          <Card key={s.k} className="glass border-border">
+          <Card key={s.k} className="paper">
             <CardContent className="p-5">
               <div className="text-[11px] uppercase tracking-widest text-muted-foreground">{s.k}</div>
               <div className="term-mono mt-2 text-2xl font-semibold">{s.v}</div>
@@ -123,10 +125,17 @@ export function Overview({ bump }: { bump: number }) {
         ))}
       </div>
 
+      {down && (
+        <div className="paper rounded-lg px-5 py-4 text-sm text-muted-foreground">
+          The engine is not responding on <span className="term-mono">localhost:8000</span>. Start it
+          from the repo root: <span className="term-mono">.venv/bin/uvicorn server.main:app --port 8000</span>.
+        </div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="glass border-border">
+        <Card className="border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base"><ScrollText className="size-4 text-emerald-300" /> Live memory journal</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base"><ScrollText className="size-4 text-[#0e7a52]" /> Live memory journal</CardTitle>
             <CardDescription>Every decision the venue has recorded, chain-hashed in Sibyl.</CardDescription>
           </CardHeader>
           <CardContent className="max-h-80 space-y-1 overflow-auto pr-1">
@@ -135,15 +144,15 @@ export function Overview({ bump }: { bump: number }) {
                 <span className="w-8 text-muted-foreground">#{e.seq}</span>
                 <span className="flex-1 truncate">{e.acted}</span>
                 <span className="text-muted-foreground">{e.ts?.slice(11, 19)}</span>
-                <span className="text-emerald-400/70">{e.hash}</span>
+                <span className="text-[#0e7a52]/60">{e.hash}</span>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card className="glass border-border">
+        <Card className="border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base"><Layers className="size-4 text-emerald-300" /> What CANON is not</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base"><Layers className="size-4 text-[#0e7a52]" /> What CANON is not</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {[
@@ -153,7 +162,7 @@ export function Overview({ bump }: { bump: number }) {
               ["Load-bearing", "Remove Sibyl and the venue cannot construct authoritative terms."],
             ].map(([k, v]) => (
               <div key={k} className="flex gap-3 rounded-lg border border-border bg-muted/30 p-3">
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-400" />
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#0e7a52]" />
                 <div><div className="font-medium">{k}</div><div className="text-muted-foreground">{v}</div></div>
               </div>
             ))}
@@ -167,11 +176,11 @@ export function Overview({ bump }: { bump: number }) {
 export function TermsCard({ terms }: { terms: Terms }) {
   if (!terms) return null;
   return (
-    <Card className="glow-primary border-emerald-400/25">
+    <Card className="paper ring-1 ring-[#0e7a52]/25">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">APPROVED under these terms</CardTitle>
-          <Badge className="rounded-full bg-emerald-500/15 text-emerald-300">doctrine v{terms.doctrine_version}</Badge>
+          <Badge className="rounded-full bg-[#0e7a52]/10 text-[#0e7a52]">doctrine v{terms.doctrine_version}</Badge>
         </div>
         <CardDescription className="term-mono text-xs">{terms.rule_ids.join(", ") || "no doctrine — naive market terms"}</CardDescription>
       </CardHeader>
@@ -256,7 +265,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
         </p>
       </div>
 
-      <Card className="glass border-border">
+      <Card className="border-border">
         <CardContent className="space-y-4 p-5">
           <div>
             <Label>Counterparty</Label>
@@ -266,7 +275,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
                   key={p}
                   onClick={() => setProvider(p)}
                   className={`rounded-lg border px-4 py-3 text-left transition-colors ${
-                    provider === p ? "border-emerald-400/40 bg-emerald-500/10" : "border-border bg-muted/40 hover:bg-muted"
+                    provider === p ? "border-[#0e7a52]/30 bg-[#0e7a52]/10" : "border-border bg-muted/40 hover:bg-muted"
                   }`}
                 >
                   <div className="text-sm font-medium">{ACTOR_LABEL[p]}</div>
@@ -299,10 +308,10 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
       {terms && <TermsCard terms={terms} />}
 
       {tx && (
-        <Card className="glass border-border">
+        <Card className="border-border">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <FileText className="size-4 text-emerald-300" /> {short(tx.tx_id, 16)}
+              <FileText className="size-4 text-[#0e7a52]" /> {short(tx.tx_id, 16)}
               <Badge className="rounded-full">{tx.state}</Badge>
               {tx.chain_ref && <span className="term-mono text-[10px] text-muted-foreground">{short(tx.chain_ref, 12)}</span>}
             </CardTitle>
@@ -317,7 +326,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
                   Evidence:
                   {["TX_VERIFIED", "ATTESTATION", "TEXT"].map((s) => (
                     <button key={s} onClick={() => setEvidence(s)}
-                      className={`rounded px-2 py-0.5 ${evidence === s ? "bg-emerald-500/20 text-emerald-200" : "hover:bg-muted"}`}>
+                      className={`rounded px-2 py-0.5 ${evidence === s ? "bg-[#0e7a52]/10 text-[#0e7a52]" : "hover:bg-muted"}`}>
                       {s.replace("_", " ")}
                     </button>
                   ))}
@@ -330,7 +339,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
       )}
 
       {claimRes && (
-        <Card className="border-amber-400/20 bg-amber-500/5">
+        <Card className="border-[#b7791f]/30 bg-[#b7791f]/5">
           <CardContent className="space-y-2 p-5 text-sm">
             <div className="font-medium">Claim resolved — this becomes institutional memory</div>
             <div className="term-mono grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
@@ -360,7 +369,7 @@ export function Transactions({ bump }: { bump: number }) {
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
-      <Card className="glass border-border">
+      <Card className="border-border">
         <Table>
           <TableHeader>
             <TableRow>

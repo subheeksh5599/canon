@@ -1,4 +1,24 @@
-export const API = process.env.NEXT_PUBLIC_CANON_API ?? "http://localhost:8000";
+const API_DEFAULT = "http://localhost:8000";
+export const API = process.env.NEXT_PUBLIC_CANON_API ?? API_DEFAULT;
+
+export class EngineOfflineError extends Error {
+  constructor() {
+    super(
+      "The CANON engine is not reachable from this origin. The engine and its Sibyl memory run as a local process — start it and open the console from your machine (or point NEXT_PUBLIC_CANON_API at a hosted backend).",
+    );
+    this.name = "EngineOfflineError";
+  }
+}
+
+/** True only when this origin can actually reach the engine:
+ *  local dev origins use the default localhost backend; deployed origins
+ *  must provide NEXT_PUBLIC_CANON_API or nothing is ever fetched. */
+export function engineConfigured(): boolean {
+  if (process.env.NEXT_PUBLIC_CANON_API) return true;
+  if (typeof window === "undefined") return true; // prerender
+  const h = window.location.hostname;
+  return h === "localhost" || h === "127.0.0.1";
+}
 
 export type Terms = {
   upfront_usd: number;
@@ -26,6 +46,7 @@ export type Tx = {
 };
 
 export async function api<T = any>(path: string, init?: RequestInit): Promise<T> {
+  if (!engineConfigured()) throw new EngineOfflineError();
   const res = await fetch(`${API}${path}`, {
     headers: { "Content-Type": "application/json" },
     ...init,

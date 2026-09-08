@@ -41,7 +41,7 @@ export function DoctrineView({ bump }: { bump: number }) {
 
       <div className="space-y-3">
         {(doc?.rules ?? []).map((r: Rule) => (
-          <Card key={r.rule_id} className="glass border-border">
+          <Card key={r.rule_id} className="border-border">
             <CardContent className="space-y-3 p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="term-mono font-semibold">{r.rule_id}</div>
@@ -75,7 +75,7 @@ export function DoctrineView({ bump }: { bump: number }) {
       {(doc?.versions?.length ?? 0) > 1 && (
         <Card className="border-border bg-muted/20">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base"><History className="size-4 text-emerald-300" /> Version history</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base"><History className="size-4 text-[#0e7a52]" /> Version history</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {doc!.versions.map((v: any) => (
@@ -134,7 +134,7 @@ export function AppealsView({ bump, onChanged }: { bump: number; onChanged: () =
         accepted appeal amends the doctrine for every future transaction.
       </p>
 
-      <Card className="glass border-border">
+      <Card className="border-border">
         <CardContent className="space-y-3 p-5">
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="sm:col-span-1">
@@ -155,7 +155,7 @@ export function AppealsView({ bump, onChanged }: { bump: number; onChanged: () =
       </Card>
 
       {appeals.map((a: any) => (
-        <Card key={a.name} className="glass border-border">
+        <Card key={a.name} className="border-border">
           <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
             <div className="min-w-0">
               <div className="term-mono flex items-center gap-2 text-sm font-medium">
@@ -186,7 +186,7 @@ export function CasesView({ bump }: { bump: number }) {
     api<{ cases: any[] }>("/api/cases").then((r) => setCases(r.cases)).catch(() => {});
   }, [bump]);
   return (
-    <Card className="glass border-border">
+    <Card className="border-border">
       <CardHeader className="pb-2">
         <CardTitle className="text-base">Resolved cases</CardTitle>
         <CardDescription>Only RESOLVED, HIGH/MEDIUM-confidence cases may seed doctrine.</CardDescription>
@@ -196,7 +196,7 @@ export function CasesView({ bump }: { bump: number }) {
           <div key={c.case_id} className="term-mono flex items-center gap-3 rounded-md bg-muted/40 px-3 py-2 text-xs">
             <span className="w-36 truncate text-muted-foreground">{short(c.case_id, 20)}</span>
             <span>{c.pattern_key}</span>
-            <span className="text-red-300/80">{c.outcome}</span>
+            <span className="text-[#b42318]/80">{c.outcome}</span>
             <span className="text-muted-foreground">loss {fmt(c.loss_usd)}</span>
             <Badge className="ml-auto rounded-full">{c.confidence}</Badge>
           </div>
@@ -227,10 +227,10 @@ function ProofCard({ title, note, run, kind }: { title: string; note: string; ru
   };
 
   return (
-    <Card className="glass border-border">
+    <Card className="border-border">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
-          <ShieldCheck className="size-4 text-emerald-300" /> {title}
+          <ShieldCheck className="size-4 text-[#0e7a52]" /> {title}
         </CardTitle>
         <CardDescription>{note}</CardDescription>
       </CardHeader>
@@ -239,7 +239,7 @@ function ProofCard({ title, note, run, kind }: { title: string; note: string; ru
         {res && (
           <div className="term-mono rounded-lg border border-border bg-black/25 p-3 text-[11px] leading-relaxed">
             {res.pass_ !== undefined && (
-              <div className={`mb-1 font-semibold ${res.pass_ ? "text-emerald-300" : "text-red-300"}`}>
+              <div className={`mb-1 font-semibold ${res.pass_ ? "text-[#0e7a52]" : "text-[#b42318]"}`}>
                 {res.pass_ ? "PROOF PASS" : "PROOF FAIL"}
               </div>
             )}
@@ -251,7 +251,7 @@ function ProofCard({ title, note, run, kind }: { title: string; note: string; ru
               </>
             )}
             {kind === "del" && (
-              <div className="text-red-300/90">{res.refusal ?? "??"}</div>
+              <div className="text-[#b42318]/90">{res.refusal ?? "??"}</div>
             )}
             {kind === "abl" && (
               <>
