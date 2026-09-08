@@ -273,13 +273,19 @@ canon/
 │   ├── ablation.py      # gate artifact 3
 │   └── demo.py          # canonical 16-step judge sequence
 ├── tests/               # 165 tests across 7 suites
-├── docs/                # doctrine spec, threat model, judge fast-path, prior work
 ├── MEMORY-NOTE.md       # memory implementation note (submission requirement)
-├── JUDGE.md             # judge fast-path
 ├── README.md
 ├── LICENSE              # MIT
 └── pyproject.toml
 ```
+
+## Prior Work declaration
+
+- **What existed before Sep 1, 2026:** the concept only — CANON existed as an idea and design conversation. No application code, schemas, contracts, or repository predate the build window.
+- **What was built during the window (Sep 1–10):** everything in this repository — the Python engine (`canon/`), 165 tests, the gate scripts (`scripts/`), the Base contract + 19-test Foundry battery, and this documentation.
+- **Dependencies:** `sibyl-memory-client` (installed from PyPI, not vendored), `forge-std` (Foundry test utilities), `pytest`/`pytest-timeout`, Solidity 0.8.24, Python 3.10+.
+- **External code adapted:** none. All domain logic is original.
+- **Boundaries:** the demo market is a deterministic synthetic seed (five resolved, TX-verified failures) clearly labeled in `scripts/seed_history.py`; no mainnet funds moved; any Base Sepolia deployment is env-key-driven and nothing is committed.
 
 ## Deploy (Base)
 
