@@ -239,6 +239,21 @@ python -m pytest tests/ -q
 
 Exit codes: `deletion_test.py` returns `1` if CANON still works without memory — that is the fail signal.
 
+## Run the venue UI (landing + judge console)
+
+```bash
+# terminal 1 — the CANON server (real engine + real Sibyl memory)
+.venv/bin/uvicorn server.main:app --port 8000
+
+# terminal 2 — the site (landing at /, console at /console)
+cd web && npm install && npm run dev
+```
+
+The console drives the live engine: evaluate → doctrine terms → create & fund → delivered/failed →
+claim → doctrine changes → judge lab (cold start / deletion / ablation) — all real engine calls, no
+mocks. Local demo settlements use a labeled simulated chain reference until a Base Sepolia deployer
+key is provided (the CanonMarket contract is tested and deployment-ready).
+
 ## Gate artifacts
 
 - **Cold start / fresh session** — `scripts/fresh_session.py`: two genuinely separate `Canon` processes over one Sibyl file; session B recalls doctrine written by session A and returns different terms for the same request (timestamped output for the video).
@@ -305,7 +320,7 @@ The engine's ledger (`canon/ledger.py`) is the memory-side mirror of the contrac
 
 - **One vertical by design**: ACP software/research-agent contracts on the `acp-research` jurisdiction. Multi-jurisdiction doctrine propagation is documented but not built — the memory axis is proven on one spine instead of faked across many.
 - **The ledger is a mirror, not yet a live rail**: the Python ledger and the Solidity contract are separately tested; the bridge (venue → contract calls) is the remaining integration and needs a funded Sepolia key.
-- **No frontend in this repo**: judging flows are driven by `scripts/` and the CLI gate artifacts; the interactive venue UI is a separate deliverable.
+- **Settlement is simulated locally**: until a funded Base Sepolia deployer key is loaded, the console marks on-chain execution with a labeled local reference; the CanonMarket contract itself is fully tested.
 - **Decay is time-based, not outcome-weighted**: a rule's status ages on a fixed schedule refreshed by supporting cases; per-actor outcome weighting beyond the counterparty file is future work.
 - **Proven at evaluation time**: terms are generated from the doctrine current when the transaction is evaluated; a funded transaction's terms are immutable (asserted by `test_t016`), so mid-job doctrine changes never rewrite a live deal.
 
