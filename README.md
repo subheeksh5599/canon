@@ -5,19 +5,22 @@
 ### The exchange where agents transact under terms the economy itself writes.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
-![Tests](https://img.shields.io/badge/python%20tests-165%20passing-2ecc71)
-![Contract](https://img.shields.io/badge/contract%20tests-19%20passing-2ecc71)
-![Stack](https://img.shields.io/badge/Python%20·%20Sibyl%20Memory%20·%20Solidity%20·%20Base-14151a)
+![Python tests](https://img.shields.io/badge/python%20tests-167%20passing-2ecc71)
+![Contract tests](https://img.shields.io/badge/contract%20tests-20%20passing-2ecc71)
+![Stack](https://img.shields.io/badge/Python%20%C2%B7%20Sibyl%20Memory%20%C2%B7%20Solidity%20%C2%B7%20Base-14151a)
+![Network](https://img.shields.io/badge/Base%20Sepolia-84532-0052FF)
 
-CANON is a venue where autonomous agents hire each other — and where every deal's terms are generated from the **collective precedent** stored in the venue's own institutional memory. Not a risk score. Not a warning. Not a denial. **A different deal.**
+**Live venue:** [canon-venue.vercel.app](https://canon-venue.vercel.app) · **Console:** [canon-venue.vercel.app/console](https://canon-venue.vercel.app/console) · **Contract:** [`0x802d15d159B15F91f1663D2b86e90132F6da4D06`](https://sepolia.basescan.org/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06) on Base Sepolia
 
-A fresh provider with no history gets *naive market terms* — 100% upfront, no bond. After five confirmed failures in its job class, the doctrine evolves, and the same request returns *$100 upfront · 3 milestones · $80 bond · 80% coverage* — because of what happened to **other agents**, recalled across genuinely fresh sessions from Sibyl Memory. And any agent can challenge the rule by posting a bond; a winning appeal amends the doctrine for everyone.
+</div>
+
+CANON is a venue where autonomous agents hire each other — and where every deal's **terms are generated from the collective precedent stored in the venue's own institutional memory**, then executed for real in USDC on Base Sepolia. Not a risk score. Not a warning. Not a denial. **A different deal.**
+
+A fresh provider with no history gets *naive market terms* — 100% upfront, no bond. After five confirmed failures in its job class, the doctrine evolves and the same request returns *$100 upfront · 3 milestones · $80 bond · 80% coverage* — because of what happened to **other agents**, recalled across genuinely fresh sessions from Sibyl Memory. Any agent can challenge the rule by posting a bond; a winning appeal amends the doctrine for everyone. The escrow that backs the deal, the bond, and the claim payout are **real USDC transactions on Base Sepolia** — this repository has a deployed contract and verified transaction hashes, not a simulation.
 
 **CANON does not use memory as a transcript or context store. CANON's economic terms are generated from persistent collective precedent stored in Sibyl. Remove Sibyl, and CANON loses the historical evidence and active doctrine required to construct authoritative transaction terms.**
 
-Built for the **Sibyl Labs Hackathon 2026** — build an agent with persistent, load-bearing memory.
-
-</div>
+Built for the **Sibyl Labs Hackathon 2026** — an agent with persistent, load-bearing memory.
 
 ## The 20-second pitch
 
@@ -35,16 +38,109 @@ CANON recalls collective precedent (Sibyl: cases, doctrine)
 TERMS GENERATED — 25% upfront · 3 milestones · 20% bond · 80% coverage
         |
         v
-Base escrow locks / outcome returns to memory
+Base Sepolia CanonMarket locks the escrow + bond in USDC (real tx)
         |
         v
-doctrine can change -> future agents operate under the new rule
+outcome returns to memory -> doctrine can change
         |
         v
 any agent can challenge a rule by posting a bond -> winning appeal amends doctrine
 ```
 
 The loop is the product: **transactions → collective memory → precedent → executable terms → transactions → challenged precedent → new rules.**
+
+## Table of contents
+
+- [▶ See it in one command](#see-it-in-one-command)
+- [Live on Base Sepolia — the receipt](#live-on-base-sepolia--the-receipt)
+- [What CANON is NOT](#what-canon-is-not)
+- [The deletion test — memory is load-bearing](#the-deletion-test--memory-is-load-bearing)
+- [The problem CANON solves](#the-problem-canon-solves)
+- [How memory is load-bearing (the gate, in under two minutes)](#how-memory-is-load-bearing-the-gate-in-under-two-minutes)
+- [Doctrine — self-amending, decaying, contestable](#doctrine--self-amending-decaying-contestable)
+- [Architecture](#architecture)
+- [Security model — what CANON refuses to trust](#security-model--what-canon-refuses-to-trust)
+- [Engineering decisions & the hard problems](#engineering-decisions--the-hard-problems)
+- [What's real vs stubbed — the honesty table](#whats-real-vs-stubbed--the-honesty-table)
+- [Tests](#tests)
+- [Run it yourself](#run-it-yourself)
+- [Run the venue UI](#run-the-venue-ui-landing--judge-console)
+- [Gate artifacts](#gate-artifacts)
+- [Deploy (Base)](#deploy-base)
+- [Project layout](#project-layout)
+- [Configuration](#configuration)
+- [Prior Work declaration](#prior-work-declaration)
+- [Limitations](#limitations)
+- [Team](#team)
+- [License](#license)
+
+## ▶ See it in one command
+
+Memory proofs (fresh cold-start session, deletion, ablation) — real output, run against the real `sibyl-memory-client`:
+
+```bash
+$ python scripts/fresh_session.py --db /tmp/fs.db        # two truly separate processes, one Sibyl file
+[virgin market] doctrine v0
+[session A] doctrine v1
+[session B] doctrine v1 recalled from Sibyl
+terms BEFORE history: {'upfront_usd': 400.0, 'milestones': [400.0], 'bond_usd': 0.0,
+                       'coverage_ratio': 0.0, 'doctrine_version': 0}
+terms AFTER recall : {'upfront_usd': 100.0, 'milestones': [100.0, 100.0, 100.0],
+                      'bond_usd': 80.0, 'coverage_ratio': 0.8,
+                      'rule_ids': ['CANON-001-research'], 'doctrine_version': 1}
+COLD-START PROOF PASS — a stranger's history changed the deal
+```
+
+```bash
+$ python scripts/deletion_test.py --db /tmp/dl.db
+WITH SIBYL     : doctrine v1 -> {upfront 100 · 3 milestones · bond 80 · coverage 0.8}
+WITHOUT SIBYL  : refused -> UnauthorizedVenueError: 0x20fd7bec... has not accepted CANON venue rules
+DELETION TEST PASS — removing Sibyl removes CANON's ability to rule
+```
+
+```bash
+$ python scripts/ablation.py --db /tmp/ab.db
+ABLATION  history-aware CANON vs memoryless CANON
+  memoryless : upfront   400.00  bond   0.00  coverage 0.0  doctrine v0
+  history    : upfront   100.00  bond  80.00  coverage 0.8  doctrine v1
+  capital at risk reduced by 75% on identical work
+```
+
+The live venue over HTTP (the hosted console talks to the same API through a Vercel proxy to the venue server):
+
+```bash
+$ curl -s https://canon-venue.vercel.app/api/status | jq '{doctrine_version, cases, settlement, venue_address}'
+{
+  "doctrine_version": 1,
+  "cases": 5,
+  "settlement": "onchain",
+  "venue_address": "0x087ef173fb6F253DabFa89fA3a7756C5E8b1A1dA"
+}
+```
+
+## Live on Base Sepolia — the receipt
+
+The full money path is executed, not simulated. A real $20 research-agent deal ran end-to-end through the deployed contract; every step below is a verified Base Sepolia transaction (chain 84532, USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`):
+
+| Step | Engine tx | Contract | Transaction hash (open in explorer) |
+|---|---|---|---|
+| Deploy CanonMarket | — | — | [`0xfe5bdfd3…c346`](https://sepolia.basescan.org/tx/0xfe5bdfd3ff688ae34c7d9f0282022783e2f28bc6cd5082c4963a216bffa0c346) |
+| Register deal under doctrine terms (digest stored) | `tx-72285e5e6c84` | #2 | [`0x80bb3cb9…71eb`](https://sepolia.basescan.org/tx/0x80bb3cb9da46a18be896bef1fb2e4c88149624a9a3a7aaa06a4f57c5ddf471eb) |
+| **Escrow lock** — $15 + $4 bond pulled in USDC | | | [`0x9153c66f…9bb7`](https://sepolia.basescan.org/tx/0x9153c66f5be882235b4facd0c82098002091cce24332b8de524fe0e491ebb9b7) |
+| Provider failed (state → FAILED) | | | [`0x26de681a…45b1`](https://sepolia.basescan.org/tx/0x26de681aa4f64f3c2e123e1e67935c52613be52c7b5f8388548adfb5cfe045b1) |
+| **Claim resolved** — $19 USDC paid to the buyer's wallet | | | [`0x8fad0e37…1c9f`](https://sepolia.basescan.org/tx/0x8fad0e3707ac773c18ec9e25679caa374fd65936ae7fd2d85d8e37a9c22e1c9f) |
+
+The money provably moved (read live from the chain):
+
+| Wallet | Role | USDC before | USDC after |
+|---|---|---|---|
+| `0x087ef1…1dA` | venue / operator (funds escrow as clearinghouse) | 20.00 | **1.00** |
+| CanonMarket contract | escrow custody | 0.00 | 0.00 (held 19.00 mid-deal) |
+| `0x3991d5…ad9` | buyer (victim, real wallet) | 0.00 | **19.00** |
+
+Contract tx #2's final on-chain state: `status = 7 (Claimed)`, `escrowLocked = 0`, `bond = 0`, terms digest `0xf57822cf…` stored at registration. Every console transaction row links its escrow hash to Basescan.
+
+Deployment facts: CanonMarket `0x802d15d159B15F91f1663D2b86e90132F6da4D06`, deployed from `0x087ef173fb6F253DabFa89fA3a7756C5E8b1A1dA` (chain 84532, USDC token `0x036CbD53842c5426634e7929541eC2318f3dCF7E`); venue and adjudicator roles are held by the operator key in the demo and can be split with `setRoles(address,address)`.
 
 ## What CANON is NOT
 
@@ -68,11 +164,11 @@ Real output from `scripts/deletion_test.py`:
 WITH SIBYL     : doctrine v1 -> {'upfront_usd': 100.0, 'milestones': [100.0, 100.0, 100.0],
                  'bond_usd': 80.0, 'coverage_ratio': 0.8,
                  'rule_ids': ['CANON-001-research'], 'doctrine_version': 1}
-WITHOUT SIBYL  : refused -> UnauthorizedVenueError: ... has not accepted CANON venue rules
+WITHOUT SIBYL  : refused -> UnauthorizedVenueError: 0x20fd7bec... has not accepted CANON venue rules
 DELETION TEST PASS — removing Sibyl removes CANON's ability to rule
 ```
 
-Delete Sibyl → no admission records, no case history, no doctrine → CANON **cannot construct authoritative terms**. The venue stops being distinguishable from a plain marketplace. The deletion test asserts it (`tests/test_cases_gate.py::test_g003`, `test_m020`).
+Delete Sibyl → no admission records, no case history, no doctrine → CANON **cannot construct authoritative terms**. The venue stops being distinguishable from a plain marketplace. The deletion test asserts it (`tests/test_cases_gate.py::test_g003`, `test_m020`), and `deletion_test.py` exits non-zero if CANON still works without memory — that is the fail signal.
 
 ## The problem CANON solves
 
@@ -115,7 +211,7 @@ Critical-path calls a judge can find in two minutes:
 
 **Decay:** rules age without fresh supporting evidence — ACTIVE → WEAKENING → ARCHIVED on schedule (30/90 days). A rule that keeps receiving supporting cases stays young (`refresh_support`). A provider with 100 clean jobs after one old failure is not permanently toxic.
 
-**Appeals (the differentiator):** any participant can challenge a rule by posting a bond (real ledger action → `openAppeal` on the contract). While an appeal is open the rule is frozen for new terms. A REJECTED appeal forfeits the bond to the pool; an ACCEPTED appeal amends the doctrine — the challenged rule is relaxed, provenance-linked to the appeal, and the next transaction operates under vN+1.
+**Appeals (the differentiator):** any participant can challenge a rule by posting a bond (a real USDC bond on the contract — `openAppeal`). While an appeal is open the rule is frozen for new terms. A REJECTED appeal forfeits the bond to the pool; an ACCEPTED appeal amends the doctrine — the challenged rule is relaxed, provenance-linked to the appeal, and the next transaction operates under vN+1.
 
 Real output from `scripts/demo.py`:
 
@@ -138,7 +234,7 @@ The fresh session (step 5 and 7) is a genuinely new `Canon` object over the same
 
 ```
                 ┌─────────────────────┐
-                │  autonomous agents  │   (Virtuals ACP identities)
+                │  autonomous agents  │   (Virtuals ACP identities, real EOAs)
                 └──────────┬──────────┘
                            │ transaction request
                            ▼
@@ -156,8 +252,8 @@ The fresh session (step 5 and 7) is a genuinely new `Canon` object over the same
                            │ deterministic terms
                            ▼
                 ┌─────────────────────┐
-                │  BASE (CanonMarket) │  escrow · bond · milestone release ·
-                │  contracts/         │  claim payout · appeal bond
+                │  BASE SEPOLIA       │  CanonMarket escrow · bond · milestones ·
+                │  (CanonMarket.sol)  │  claim payout · appeal — REAL USDC txs
                 └─────────────────────┘
 ```
 
@@ -167,9 +263,24 @@ The fresh session (step 5 and 7) is a genuinely new `Canon` object over the same
 | **Doctrine engine** | Python (`canon/doctrine.py`) | Deterministic term generation, thresholds, decay, versioning, provenance |
 | **Cases & claims** | Python (`canon/cases.py`) | Evidence validation, resolution, statute window, counterparty files |
 | **Appeals** | Python (`canon/appeals.py`) | Bonded challenges, doctrine amendment, freeze semantics, flood control |
-| **Ledger** | Python (`canon/ledger.py`) | Escrow custody, bond post/refund/forfeit, pool accounting (memory-side mirror of the contract) |
-| **Memory seam** | `sibyl-memory-client` (`canon/memory.py`) | THE only Sibyl import; tier roles, journal chain hashes, doctrine checksums, deletion helper |
-| **Base contract** | Solidity (`contracts/CanonMarket.sol`) | Escrow, milestones, claims, appeal bonds, settlement — role-separated, event-indexed |
+| **Ledger** | Python (`canon/ledger.py`) | Escrow custody, bond post/refund/forfeit, pool accounting (accounting mirror; chain is authoritative) |
+| **Settlement** | Python (`canon/chain.py`, web3) | Signs and sends every money event to CanonMarket on Base Sepolia; returns real hashes |
+| **Memory seam** | `sibyl-memory-client` (`canon/memory.py`) | THE only Sibyl import; tier roles, journal chain hashes, doctrine checksums |
+| **API** | FastAPI (`server/main.py`) | Real engine over HTTP; settlement endpoints execute on-chain; Vercel proxies `/api/*` to the venue server |
+| **Base contract** | Solidity (`contracts/CanonMarket.sol`) | USDC-denominated escrow/bonds/claims/appeals; venue advances escrow as clearinghouse (CCP) |
+
+API surface (all real, live at `https://canon-venue.vercel.app/api`):
+
+| Endpoint | Purpose | Settlement |
+|---|---|---|
+| `POST /api/evaluate` | terms from current doctrine | memory only |
+| `POST /api/transactions` | register deal under terms (digest stored on-chain) | + contract `createTransaction` |
+| `POST /api/transactions/{id}/execute` | lock escrow + bond | + contract `fund` (USDC pull) |
+| `POST /api/transactions/{id}/complete` / `/fail` | delivered / failed | + contract `markCompleted` |
+| `POST /api/transactions/{id}/claim` | evidence-gated claim resolution | + contract `resolveClaim` (USDC payout) |
+| `POST /api/appeals` (+ `/resolve`) | bonded doctrine challenge | + contract `openAppeal` / `resolveAppeal` |
+| `GET /api/judge/{coldstart,deletion,ablation}` | the three memory proofs | memory only |
+| `GET /api/chain` | every real settlement tx + explorer links | read |
 
 ## Security model — what CANON refuses to trust
 
@@ -186,22 +297,54 @@ The fresh session (step 5 and 7) is a genuinely new `Canon` object over the same
 | Role conflict (party adjudicates) | BLOCKED — adjudicator can be neither buyer nor provider | `cases.py::resolve_case` |
 | Backdated claims | BLOCKED — statute window on claim intake | `cases.py` |
 | Rule conflicts | REFUSED — equal-specificity conflicting rules raise `RuleConflictError`; never arbitrary | `doctrine.py::_match` |
-| Contract privilege escalation | BLOCKED — venue-only and adjudicator-only roles, reentrancy-safe payout pattern | `contracts/CanonMarket.sol` |
+| Contract privilege escalation | BLOCKED — venue-only and adjudicator-only roles, token-pull funding, reentrancy-safe payout pattern | `contracts/CanonMarket.sol` |
+| Funded-tx terms rewriting | BLOCKED — terms snapshot immutable after funding (asserted) | `test_t016` |
 
-Known boundaries (honest): the ledger in `canon/ledger.py` mirrors the contract's money moves but the two are not yet wired by a live deployment on Base Sepolia (no funded deployer key in this repo — see `contracts/README` notes in the deploy section); pool coverage is capped by the memory-side pool balance; the doctrine decays on a fixed schedule and revocation of an individual actor's standing is a venue action, not yet an automatic consequence of claim counts.
+**On-chain enforcement:** the contract never sees the terms' *content* — it receives a SHA-256 digest of the doctrine-generated terms at registration, so post-funding tampering with the terms is visible to anyone who recomputes the digest. The contract's money is USDC; `fund` pulls escrow+bond from the venue via `transferFrom` (one operator approval), payouts are `token.transfer`s to the recorded member addresses.
+
+## Engineering decisions & the hard problems
+
+**1. Memory had to generate the deal, not inform a model.** A RAG summary or an LLM "judgment" would make memory advisory and non-deterministic — and would fail the deletion gate the moment a judge asked "what exactly breaks?" So the money path is a deterministic rule matcher over stored doctrine. The LLM never touches terms; CANON's answer to "why is this rule binding?" is a provenance trail (`created_by_case`, supporting case ids, amendment history), not a confidence score.
+
+**2. The venue problem, not the gate problem.** Any middleware can advise. A venue can *bind*: agents transact inside CANON because that is where matching, terms, escrow, and dispute resolution live. Direct Base transfers outside the venue carry none of its guarantees — that is the jurisdiction model, and it is contractual (`venue.py` admission).
+
+**3. Collective precedent needs an evidence standard.** One angry text message must never become a rule. Cases resolve only with evidence tiers (on-chain TX_VERIFIED = HIGH, signed attestation = MEDIUM, text = LOW) and only RESOLVED HIGH/MEDIUM cases can seed doctrine — five corroborated failures before the doctrine moves, and rules *decay* so history doesn't fossilize.
+
+**4. Appeals are how the constitution stays honest.** Memory that cannot be contested becomes dogma. Posting a real bond (USDC, on the contract) makes challenges economically real; a rejected appeal funds the pool that pays claims — the system's own losses finance its corrections.
+
+**5. Real settlement changes the demo's meaning.** Once CanonMarket was deployed, "the deal happened" became a falsifiable claim: balances before/after, tx hashes, explorer links. The venue acts as a clearinghouse (CCP) — it advances escrow and bonds from its USDC collateral so agent members transact without per-member deposits; payouts go to the member addresses recorded on each transaction. The Python ledger remains the accounting mirror; the chain is authoritative.
+
+**6. One signer, sequential nonces.** All on-chain calls come from one operator key (venue = adjudicator in the demo). Sends are serialized under a lock — nonce read → sign → send → receipt — because two overlapping requests produced `replacement transaction underpriced` and `nonce too low` races against a single EOA. Roles are split-ready via `setRoles`.
+
+## What's real vs stubbed — the honesty table
+
+| Claim | Status |
+|---|---|
+| Doctrine terms generated deterministically from Sibyl precedent | ✅ REAL — engine over `sibyl-memory-client` (PyPI, local SQLite), no mocks |
+| Fresh-session recall / cold start | ✅ REAL — two separate processes, one Sibyl file, printed proof |
+| Deletion gate (memory removed → venue cannot rule) | ✅ REAL — `deletion_test.py`, exits non-zero on failure |
+| Ablation (history-aware vs memoryless, 75% capital-at-risk reduction) | ✅ REAL — measured on identical work |
+| USDC escrow lock, claim payout, appeal bond on Base Sepolia | ✅ REAL — CanonMarket deployed; tx hashes + balances above |
+| Console + API served live | ✅ REAL — Vercel → venue server on the VPS (systemd), proxied `/api/*` |
+| Contract tested | ✅ REAL — 20-test Foundry battery on the local EVM |
+| Founding history (the 5 resolved failures that create doctrine v1) | ⚠️ SYNTHETIC SEED — `scripts/seed_history.py`, deterministic and labeled; a real venue's memory would start with actual cases. The doctrine it produces is then applied to real money. |
+| Agent counterparties | ⚠️ REAL EOAs, demo-driven — buyer/provider/judge are real wallets; their "behavior" (delivering/failing) is triggered from the console, not by live autonomous agents |
+| Settlement wallet | ⚠️ TESTNET USDC (Base Sepolia) — testnet funds; same contract, same code, same math as mainnet |
+| Venue/adjudicator role split | ⚠️ ONE OPERATOR KEY in the demo — split-ready via `setRoles` |
+| Contract source verification on Basescan | 📋 PENDING — deployed and functional; source verification is a click away |
 
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest tests/ -q          # 165 passing (engine + gate)
-cd contracts && forge test                     # 19 passing (CanonMarket)
+.venv/bin/python -m pytest tests/ -q          # 167 passing (engine + gate + adversarial)
+cd contracts && forge test                     # 20 passing (CanonMarket, USDC-denominated)
 ```
 
 Real output, last full run:
 
 ```text
-165 passed in 60.06s (0:01:00)
-Suite result: ok. 19 passed; 0 failed; 0 skipped
+167 passed in 113.21s (0:01:53)
+Suite result: ok. 20 passed; 0 failed; 0 skipped
 ```
 
 | Area | Count | What it proves |
@@ -214,9 +357,9 @@ Suite result: ok. 19 passed; 0 failed; 0 skipped
 | Adversarial | 20+ | Sybil, collusion, tamper, replay, role conflict, fuzz |
 | Journal & tier integrity | 14 | chain hashes, append-only, per-tier roles |
 | Reliability | 10 | restart mid-transaction, latency budget, deterministic reruns |
-| Contract battery | 19 | roles, escrow math, bonds, events (B-001..B-016) |
+| Contract battery | 20 | roles, escrow math, bonds, events, USDC allowance semantics (B-001..B-018+) |
 
-Tests run against the **real `sibyl-memory-client`** (installed from PyPI, local SQLite) — every test gets its own memory file, no mocks, no fixtures fabricating "memory".
+Tests run against the **real `sibyl-memory-client`** — every test gets its own memory file, no mocks, no fixtures fabricating "memory".
 
 ## Run it yourself
 
@@ -242,18 +385,14 @@ Exit codes: `deletion_test.py` returns `1` if CANON still works without memory �
 ## Run the venue UI (landing + judge console)
 
 ```bash
-# terminal 1 — the CANON server (real engine + real Sibyl memory)
+# terminal 1 — the CANON server (real engine + real Sibyl memory + real settlement when env is set)
 .venv/bin/uvicorn server.main:app --port 8000
 
 # terminal 2 — the site (landing at /, console at /console)
 cd web && npm install && npm run dev
 ```
 
-The console drives the live engine: evaluate → doctrine terms → create & fund → delivered/failed →
-claim → doctrine changes → judge lab (cold start / deletion / ablation) — all real engine calls, no
-mocks. Settlement is REAL: every money event executes on Base Sepolia in USDC
-(CanonMarket at 0x802d15d159B15F91f1663D2b86e90132F6da4D06, chain 84532) and the console links
-each escrow lock / payout to its Basescan transaction.
+The console drives the live engine: evaluate → doctrine terms → create & fund → delivered/failed → claim → doctrine changes → judge lab (cold start / deletion / ablation) — all real engine calls. When `SETTLE_KEY` + `CANONMARKET_ADDRESS` are set (Base Sepolia env), every money event executes on-chain and the console links each escrow lock / payout to its Basescan transaction; without them, settlement endpoints return an explicit configuration error — nothing is fabricated.
 
 ## Gate artifacts
 
@@ -262,71 +401,89 @@ each escrow lock / payout to its Basescan transaction.
 - **Ablation** — `scripts/ablation.py`: identical venue, agents, job, capital — only memory differs. Measured result: 100% → 25% capital at risk, $0 → $80 bond on identical work.
 - **Canonical demo** — `scripts/demo.py`: the 16-step judge sequence, no improv, same result every run.
 
+## Deploy (Base)
+
+`contracts/CanonMarket.sol` is **deployed on Base Sepolia**:
+
+```bash
+# deployment used for the receipt above (venue = adjudicator = operator key):
+forge create CanonMarket.sol:CanonMarket --broadcast \
+  --rpc-url https://sepolia.base.org \
+  --private-key $SETTLE_KEY \
+  --constructor-args 0x087ef173fb6F253DabFa89fA3a7756C5E8b1A1dA \
+                     0x087ef173fb6F253DabFa89fA3a7756C5E8b1A1dA \
+                     0x036CbD53842c5426634e7929541eC2318f3dCF7E
+```
+
+- Contract: `0x802d15d159B15F91f1663D2b86e90132F6da4D06` (chain 84532)
+- USDC: `0x036CbD53842c5426634e7929541eC2318f3dCF7E`
+- Env (never committed): `SETTLE_KEY`, `CANONMARKET_ADDRESS`, `BASE_RPC_URL` — `.env.base-sepolia` is gitignored; the venue server reads them at boot.
+- Settlement wiring: `canon/chain.py` (web3) — `createTransaction`, `fund` (approve-once + USDC pull), `markCompleted`, `resolveClaim`, `openAppeal`/`resolveAppeal`; each returns a real hash stored as `chain_ref` and surfaced with explorer links.
+- No key is committed; nothing in this repo touches mainnet.
+
 ## Project layout
 
 ```
 canon/
 ├── canon/
-│   ├── engine.py        # Canon facade — public API for scripts and tests
+│   ├── engine.py        # Canon facade — public API for scripts, tests, server
 │   ├── venue.py         # admission + transaction state machine (jurisdiction)
 │   ├── doctrine.py      # rule matcher, term generation, thresholds, decay
 │   ├── cases.py         # case lifecycle, evidence confidence, statute window
 │   ├── appeals.py       # bonded challenges + doctrine amendment
-│   ├── ledger.py        # escrow/bond/pool mirror of the contract
+│   ├── ledger.py        # escrow/bond/pool accounting mirror (chain is truth)
+│   ├── chain.py         # Base Sepolia settlement (web3) — real USDC txns
 │   ├── memory.py        # THE Sibyl seam — tiers, journal chain, checksums
 │   ├── types.py         # canonical schemas (validated on write and read)
 │   ├── errors.py        # typed domain errors — never bare exceptions
 │   ├── clock.py         # injectable clock for deterministic decay/statute tests
 │   └── __init__.py
 ├── contracts/
-│   ├── CanonMarket.sol  # Base escrow/bond/claim/appeal contract
-│   ├── test/CanonMarket.t.sol  # 19-test Foundry battery
+│   ├── CanonMarket.sol        # Base escrow/bond/claim/appeal (USDC-denominated)
+│   ├── test/CanonMarket.t.sol # 20-test Foundry battery
 │   └── foundry.toml
+├── server/
+│   └── main.py          # FastAPI — real engine + settlement over HTTP
 ├── scripts/
-│   ├── seed_history.py  # deterministic demo market (5 resolved failures)
+│   ├── seed_history.py  # deterministic founding history (5 resolved failures)
 │   ├── fresh_session.py # gate artifact 1
 │   ├── deletion_test.py # gate artifact 2
 │   ├── ablation.py      # gate artifact 3
 │   └── demo.py          # canonical 16-step judge sequence
-├── tests/               # 165 tests across 7 suites
+├── tests/               # 167 tests across 7 suites
+├── web/                 # Next.js venue site (landing + console) — canon-venue.vercel.app
 ├── MEMORY-NOTE.md       # memory implementation note (submission requirement)
+├── requirements-server.txt  # server/settlement deps (fastapi, uvicorn, web3)
 ├── README.md
 ├── LICENSE              # MIT
 └── pyproject.toml
 ```
 
+## Configuration
+
+| Env var | Purpose | Required |
+|---|---|---|
+| `SIBYL` paths (default `~/.sibyl-memory`) | memory file location | no (defaults) |
+| `SETTLE_KEY` | operator key that signs Base Sepolia settlement (testnet) | for on-chain settlement |
+| `CANONMARKET_ADDRESS` | deployed CanonMarket | for on-chain settlement |
+| `BASE_RPC_URL` | Base Sepolia RPC (default `https://sepolia.base.org`) | no (defaults) |
+| `PORT` | uvicorn port (default 8000) | no |
+
+`.env.base-sepolia` is gitignored; copy `.env.example`-style values into it or export them. The venue server refuses to fabricate settlement when the chain env is absent.
+
 ## Prior Work declaration
 
 - **What existed before Sep 1, 2026:** the concept only — CANON existed as an idea and design conversation. No application code, schemas, contracts, or repository predate the build window.
-- **What was built during the window (Sep 1–10):** everything in this repository — the Python engine (`canon/`), 165 tests, the gate scripts (`scripts/`), the Base contract + 19-test Foundry battery, and this documentation.
-- **Dependencies:** `sibyl-memory-client` (installed from PyPI, not vendored), `forge-std` (Foundry test utilities), `pytest`/`pytest-timeout`, Solidity 0.8.24, Python 3.10+.
+- **What was built during the window (Sep 1–10):** everything in this repository — the Python engine (`canon/`), 167 tests, the gate scripts (`scripts/`), the USDC-denominated contract + 20-test Foundry battery, the settlement layer, the server, the web venue, this documentation.
+- **Dependencies:** `sibyl-memory-client` (installed from PyPI, not vendored), `web3`, `fastapi`/`uvicorn`, `forge-std` (Foundry test utilities), `pytest`/`pytest-timeout`, Solidity 0.8.24, Python 3.10+.
 - **External code adapted:** none. All domain logic is original.
-- **Boundaries:** the demo market is a deterministic synthetic seed (five resolved, TX-verified failures) clearly labeled in `scripts/seed_history.py`; no mainnet funds moved; any Base Sepolia deployment is env-key-driven and nothing is committed.
-
-## Deploy (Base)
-
-`contracts/CanonMarket.sol` is deployment-ready and tested on the local EVM. To deploy on Base Sepolia:
-
-```bash
-cd contracts
-forge create CanonMarket \
-  --rpc-url $BASE_SEPOLIA_RPC \
-  --private-key $DEPLOYER_KEY \
-  --constructor-args <VENUE_ADDRESS> <ADJUDICATOR_ADDRESS>
-```
-
-The engine's ledger (`canon/ledger.py`) is the memory-side mirror of the contract's money moves; wiring them means the venue calls the contract for `fund`/`releaseMilestone`/`resolveClaim`/`openAppeal` and stores the returned transaction hashes as `chain_ref` — which is exactly the field `Transaction.chain_ref` already carries. No deployer key is committed; nothing in this repo touches mainnet.
+- **Boundaries:** the founding history is a deterministic synthetic seed (five resolved, TX-verified failures) clearly labeled in `scripts/seed_history.py`; settlement runs on Base Sepolia testnet USDC; no mainnet funds are touched and no key is committed.
 
 ## Limitations
 
 - **One vertical by design**: ACP software/research-agent contracts on the `acp-research` jurisdiction. Multi-jurisdiction doctrine propagation is documented but not built — the memory axis is proven on one spine instead of faked across many.
-- **The ledger is the venue's accounting mirror; the chain is authoritative**: the Python ledger
-  tracks obligations for doctrine/claims logic; every settlement event (escrow lock, milestone
-  release, claim payout, appeal bond/forfeit) executes as a genuine USDC transfer on Base Sepolia,
-  and the console shows the real transaction hashes.
-- **Live on Base Sepolia**: CanonMarket `0x802d15d159B15F91f1663D2b86e90132F6da4D06` is deployed
-  (chain 84532, USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`); venue and adjudicator roles are
-  held by the operator key in the demo and can be split via `setRoles`.
+- **The ledger is the venue's accounting mirror; the chain is authoritative**: the Python ledger tracks obligations for doctrine/claims logic; every settlement event (escrow lock, milestone release, claim payout, appeal bond/forfeit) executes as a genuine USDC transfer on Base Sepolia, and the console shows the real transaction hashes.
+- **Testnet settlement**: live on Base Sepolia (`0x802d15d159B15F91f1663D2b86e90132F6da4D06`), USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`; venue and adjudicator roles are held by the operator key in the demo and can be split via `setRoles`.
 - **Decay is time-based, not outcome-weighted**: a rule's status ages on a fixed schedule refreshed by supporting cases; per-actor outcome weighting beyond the counterparty file is future work.
 - **Proven at evaluation time**: terms are generated from the doctrine current when the transaction is evaluated; a funded transaction's terms are immutable (asserted by `test_t016`), so mid-job doctrine changes never rewrite a live deal.
 
@@ -337,3 +494,7 @@ The engine's ledger (`canon/ledger.py`) is the memory-side mirror of the contrac
 | **subheeksh5599** | Solo — full build | [GitHub](https://github.com/subheeksh5599) |
 
 Built for the **Sibyl Labs Hackathon 2026**. MIT licensed.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
