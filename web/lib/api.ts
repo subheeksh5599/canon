@@ -1,5 +1,12 @@
 const API_DEFAULT = "http://localhost:8000";
-export const API = process.env.NEXT_PUBLIC_CANON_API ?? API_DEFAULT;
+/** Deployed origins proxy /api/* through Vercel rewrites → the VPS backend,
+ *  so the base is relative there; local dev talks to the localhost engine. */
+export const API =
+  process.env.NEXT_PUBLIC_CANON_API ??
+  (typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? API_DEFAULT
+    : "");
 
 export class EngineOfflineError extends Error {
   constructor() {
@@ -12,12 +19,18 @@ export class EngineOfflineError extends Error {
 
 /** True only when this origin can actually reach the engine:
  *  local dev origins use the default localhost backend; deployed origins
- *  must provide NEXT_PUBLIC_CANON_API or nothing is ever fetched. */
+ *  reach it through the Vercel /api rewrite proxy. */
 export function engineConfigured(): boolean {
   if (process.env.NEXT_PUBLIC_CANON_API) return true;
   if (typeof window === "undefined") return true; // prerender
   const h = window.location.hostname;
-  return h === "localhost" || h === "127.0.0.1";
+  return (
+    h === "localhost" ||
+    h === "127.0.0.1" ||
+    h.endsWith("vercel.app") ||
+    h.endsWith(".vercel.app") ||
+    h.endsWith("vercel.dev")
+  );
 }
 
 export type Terms = {
