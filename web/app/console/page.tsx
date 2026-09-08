@@ -19,7 +19,7 @@ function ConnectGate() {
   };
   return (
     <main className="flex flex-1">
-      <Sidebar current="overview" onNav={() => {}} />
+      <Sidebar current="overview" onNav={() => {}} disabled />
       <div className="flex flex-1 items-center justify-center px-8 py-16">
         <div className="w-full max-w-xl">
           <div className="eyebrow mb-3 flex items-center gap-2">

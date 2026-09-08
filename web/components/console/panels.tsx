@@ -28,25 +28,42 @@ const NAV: { id: Section; label: string; icon: typeof Activity }[] = [
   { id: "judge", label: "Judge lab", icon: Landmark },
 ];
 
-export function Sidebar({ current, onNav }: { current: Section; onNav: (s: Section) => void }) {
+export function Sidebar({
+  current,
+  onNav,
+  disabled,
+}: {
+  current: Section;
+  onNav: (s: Section) => void;
+  disabled?: boolean;
+}) {
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-sidebar px-3 py-5">
-      <div className="flex items-center gap-2 px-2 pb-6">
+      <div className="flex items-center justify-between px-2 pb-6">
         <span className="term-mono text-lg font-semibold tracking-tight">CANON</span>
-        <span className="rounded border border-border px-1.5 py-0.5 text-[9px] uppercase tracking-widest text-muted-foreground">
-          venue
-        </span>
+        {disabled ? (
+          <span className="term-mono flex items-center gap-1.5 rounded border border-[rgba(224,106,94,0.4)] bg-[rgba(224,106,94,0.1)] px-1.5 py-0.5 text-[9px] uppercase tracking-widest text-[#e06a5e]">
+            <span className="inline-block size-1.5 rounded-full bg-[#e06a5e]" /> offline
+          </span>
+        ) : (
+          <span className="rounded border border-border px-1.5 py-0.5 text-[9px] uppercase tracking-widest text-muted-foreground">
+            venue
+          </span>
+        )}
       </div>
       <nav className="flex flex-col gap-1">
         {NAV.map((n) => (
           <button
             key={n.id}
+            type="button"
+            disabled={disabled}
             onClick={() => onNav(n.id)}
+            aria-disabled={disabled}
             className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
               current === n.id
                 ? "bg-[rgba(95,201,168,0.12)] text-[#5fc9a8] border border-[rgba(95,201,168,0.4)]"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
-            }`}
+                : "text-muted-foreground border border-transparent"
+            } ${disabled ? "cursor-not-allowed opacity-45 hover:bg-transparent" : "hover:bg-muted hover:text-foreground"}`}
           >
             <n.icon className="size-4" />
             {n.label}
@@ -54,8 +71,21 @@ export function Sidebar({ current, onNav }: { current: Section; onNav: (s: Secti
         ))}
       </nav>
       <div className="mt-auto px-2 text-[11px] leading-relaxed text-muted-foreground">
-        <div className="term-mono mb-1 text-[10px] uppercase tracking-widest">memory is load-bearing</div>
-        Delete Sibyl and the venue cannot construct terms.
+        {disabled ? (
+          <>
+            <div className="term-mono mb-1 text-[10px] uppercase tracking-widest">
+              start the backend to navigate
+            </div>
+            The engine lives on the machine that runs the venue — this console drives it directly.
+          </>
+        ) : (
+          <>
+            <div className="term-mono mb-1 text-[10px] uppercase tracking-widest">
+              memory is load-bearing
+            </div>
+            Delete Sibyl and the venue cannot construct terms.
+          </>
+        )}
       </div>
     </aside>
   );
