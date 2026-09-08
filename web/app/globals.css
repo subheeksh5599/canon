@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* CANON — dark-first premium tokens (shadcn-compatible surface names) */
+:root {
+  --background: #07090d;
+  --foreground: #e7ebf2;
+  --card: #0b0f16;
+  --card-foreground: #e7ebf2;
+  --popover: #0b0f16;
+  --popover-foreground: #e7ebf2;
+  --primary: #34d399;
+  --primary-foreground: #04120c;
+  --secondary: #131a26;
+  --secondary-foreground: #d6dcea;
+  --muted: #10161f;
+  --muted-foreground: #8b95a7;
+  --accent: #131a26;
+  --accent-foreground: #e7ebf2;
+  --destructive: #f87171;
+  --destructive-foreground: #1a0505;
+  --border: rgba(148, 163, 184, 0.14);
+  --input: rgba(148, 163, 184, 0.18);
+  --ring: #34d399;
+  --radius: 0.75rem;
+  --chart-1: #34d399;
+  --chart-2: #60a5fa;
+  --chart-3: #c084fc;
+  --chart-4: #fbbf24;
+  --chart-5: #f472b6;
+  --sidebar: #080b11;
+  --sidebar-foreground: #e7ebf2;
+  --sidebar-accent: #10161f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* CANON visual system */
+.canon-grid-bg {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 55%, transparent 100%);
+}
+
+.glow-primary {
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.25), 0 12px 48px -12px rgba(52, 211, 153, 0.35);
+}
+
+.gradient-text {
+  background: linear-gradient(100deg, #a7f3d0 0%, #34d399 38%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: linear-gradient(160deg, rgba(19, 26, 38, 0.72), rgba(11, 15, 22, 0.86));
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+}
+
+.term-mono {
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: rgba(52, 211, 153, 0.28);
+}

@@ -260,27 +260,51 @@ class DoctrineEngine:
         )
         return rule
 
+    def maybe_activate(self, pattern_key: str, case_id: str, reason: str) -> Optional[Doctrine]:
+        """Activation policy: if the pattern already has an ACTIVE governing
+        rule, refresh its support (keep its decay clock young) instead of
+        stacking versions. Only a decayed/absent rule triggers a new version."""
+        doc = self.current_doctrine()
+        for r in doc.rules:
+            if (r.status is DoctrineStatus.ACTIVE and r.job_classes is not None
+                    and pattern_key in [_normalize_job_type(j) for j in r.job_classes]):
+                self.refresh_support(pattern_key, case_id)
+                return None
+        return self.activate_doctrine_update(pattern_key, activated_by_case=case_id, reason=reason)
+
     def activate_doctrine_update(self, pattern_key: str, *, activated_by_case: str, reason: str) -> Optional[Doctrine]:
         """Evidence threshold crossed -> doctrine vN+1 enters memory (D-015..D-018).
-        The new rule is STORED, never regenerated per-request (D-030)."""
+        The new rule is STORED, never regenerated per-request (D-030). If the
+        pattern already has an ACTIVE rule, that rule is superseded (not
+        duplicated) — the new version carries the escalated rule instead."""
         candidate = self.propose_candidate_rule(pattern_key, activated_by_case=activated_by_case)
         if candidate is None:
             return None
+        import copy as _copy
         doc = self.current_doctrine()
-        # freeze decayed/contested rules out of the active set by re-versioning statuses
-        updated_rules = [self._apply_decay(r) for r in doc.rules]
+        carried = [self._apply_decay(_copy.deepcopy(r)) for r in doc.rules]
+        # supersede any active rule governing the same pattern instead of
+        # stacking a same-specificity duplicate (RuleConflictError guard)
+        prior = None
+        kept: list[Rule] = []
+        for r in carried:
+            owns_pattern = (r.job_classes is not None
+                            and pattern_key in [_normalize_job_type(j) for j in r.job_classes]
+                            and r.status is DoctrineStatus.ACTIVE)
+            if owns_pattern and prior is None:
+                prior = r
+                continue  # superseded by the candidate below
+            kept.append(r)
+        if prior is not None:
+            candidate.supersedes = prior.rule_id
         new_version = doc.version + 1
         new_doc = Doctrine(
             version=new_version,
-            rules=updated_rules + [candidate],
+            rules=kept + [candidate],
             effective_at=self.clock.iso(),
             supersedes=doc.version if doc.version else None,
             activated_by_case=activated_by_case,
         )
-        if doc.version > 0:
-            for r in doc.rules:
-                self._seam.archive_entity(mem_mod.CAT_CASE, r.created_by_case or "", reason="superseded-doctrine") \
-                    if r.created_by_case else None
         self.persist(new_doc)
         return new_doc
 

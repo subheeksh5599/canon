@@ -158,18 +158,15 @@ class Canon:
         )
         self.cases.record_outcome_on_counterparty(case)
         settlement = self.settle_claim(tx=tx, case=case)
-        # doctrine: signal from resolved evidence (thresholds inside engine)
+        # doctrine: activate on threshold; otherwise keep the governing rule fresh
         pattern = case.pattern_key
         signal, stats = self.doctrine.signal_level(pattern)
         activated = None
         if signal.value == "ACTIVE":
-            activated = self.doctrine.activate_doctrine_update(
-                pattern, activated_by_case=case.case_id,
+            activated = self.doctrine.maybe_activate(
+                pattern, case.case_id,
                 reason=f"{stats['bad_cases']} confirmed failures in {pattern}",
             )
-        else:
-            # refresh support on the active rule so its decay clock stays young
-            self.doctrine.refresh_support(pattern, case.case_id)
         self._seam.write_event(
             evaluated={"tx_id": tx_id, "case_id": case.case_id, "signal": signal.value,
                        "doctrine": activated.version if activated else None},

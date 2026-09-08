@@ -179,3 +179,36 @@ def test_zero_bond_rule_allowed(canon):
     # no doctrine: virgin terms have no bond — money-path sanity
     t = canon.evaluate(buyer=B, provider=P, job_type="research", job_value_usd=5.0)
     assert t.bond_usd == 0.0 and t.upfront_usd == 5.0
+
+
+def test_repeat_activation_refreshes_not_stacks(canon):
+    """Once a pattern is governed, further confirmed failures refresh the
+    rule's support instead of stacking versions (no same-specificity dupes)."""
+    canon.admit(B)
+    canon.admit(P)
+    from tests.conftest import prime_doctrine
+    prime_doctrine(canon)          # first activation -> v1
+    prime_doctrine(canon)          # another 5 failures -> refresh, still v1
+    d = canon.doctrine_now()
+    assert d.version == 1
+    research = [r for r in d.rules if r.job_classes == ["research"]]
+    assert len(research) == 1
+    canon.admit(P2)
+    t = canon.evaluate(buyer=B, provider=P2, job_type="research agent", job_value_usd=400.0)
+    assert t.doctrine_version == 1  # no RuleConflictError, no stack
+
+
+def test_decayed_rule_escalates_to_new_version(canon, clock):
+    """When the governing rule decays away, fresh failures escalate doctrine
+    to a new version carrying a new rule for the same pattern."""
+    canon.admit(B)
+    canon.admit(P)
+    from tests.conftest import prime_doctrine
+    prime_doctrine(canon)                       # v1 active
+    clock.advance(days=200)                     # rule decays (no fresh support)
+    canon.evaluate(buyer=B, provider=P, job_type="research agent", job_value_usd=50.0)  # lazy decay persists archive
+    prime_doctrine(canon)                       # 5 new failures -> new version
+    d = canon.doctrine_now()
+    assert d.version == 2
+    research = [r for r in d.rules if r.job_classes == ["research"] and r.status.value == "ACTIVE"]
+    assert len(research) == 1
