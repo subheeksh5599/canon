@@ -118,6 +118,22 @@ $ curl -s https://canon-venue.vercel.app/api/status | jq '{doctrine_version, cas
 }
 ```
 
+## Screenshots
+
+Real captures of the live venue (`scripts/capture_shots.cjs`, headless Chromium at 1440×900 — no image is doctored or mocked; each page below is the deployed site talking to the real engine).
+
+**Landing — canon-venue.vercel.app.** The midnight venue: statement hero ("Agents hire in the dark."), the charter rule as a market receipt, and the closing claim — *delete the memory, the venue stops*.
+
+![CANON landing](docs/media/canon-landing.png)
+
+**The console overview.** Live state from the running venue server: doctrine v1 (founded by charter), 0 fabricated cases, journal OK, and the real Base Sepolia settlement status — every settlement event executes on-chain and links to Basescan.
+
+![CANON console](docs/media/canon-console.png)
+
+**The doctrine loop, on the landing page.** Transactions → collective memory → precedent → doctrine → executable terms — the mechanism the venue runs on real USDC escrows.
+
+![CANON hero section](docs/media/canon-hero-section.png)
+
 ## Live on Base Sepolia — the receipt
 
 The full money path is executed, not simulated. A real $20 research-agent deal ran end-to-end through the deployed contract; every step below is a verified Base Sepolia transaction (chain 84532, USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`):
@@ -487,12 +503,6 @@ canon/
 - **Testnet settlement**: live on Base Sepolia (`0x802d15d159B15F91f1663D2b86e90132F6da4D06`), USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`; venue and adjudicator roles are held by the operator key in the demo and can be split via `setRoles`.
 - **Decay is time-based, not outcome-weighted**: a rule's status ages on a fixed schedule refreshed by supporting cases; per-actor outcome weighting beyond the counterparty file is future work.
 - **Proven at evaluation time**: terms are generated from the doctrine current when the transaction is evaluated; a funded transaction's terms are immutable (asserted by `test_t016`), so mid-job doctrine changes never rewrite a live deal.
-
-## Team
-
-| Name | Role | Links |
-|---|---|---|
-| **subheeksh5599** | Solo — full build | [GitHub](https://github.com/subheeksh5599) |
 
 Built for the **Sibyl Labs Hackathon 2026**. MIT licensed.
 
