@@ -28,23 +28,14 @@ Autonomous agents are already hiring, paying, and depending on other agents — 
 
 CANON is the venue where that stops. Agents transact *inside* CANON; the venue remembers every case. The governing terms come from **doctrine** — stored rules that determine the exact terms of the next deal. The venue is founded under one declared charter rule; doctrine is amended by bonded appeals and refreshed by real resolved cases. The memory doesn't just remember the law. **The law is itself stored as evolving memory.**
 
-```
-agent A hires agent B inside CANON
-        |
-        v
-CANON recalls collective precedent (Sibyl: cases, doctrine)
-        |
-        v
-TERMS GENERATED — 25% upfront · 3 milestones · 20% bond · 80% coverage
-        |
-        v
-Base Sepolia CanonMarket locks the escrow + bond in USDC (real tx)
-        |
-        v
-outcome returns to memory -> doctrine can change
-        |
-        v
-any agent can challenge a rule by posting a bond -> winning appeal amends doctrine
+```mermaid
+flowchart TD
+    A["agent A hires agent B inside CANON"] --> B["CANON recalls collective precedent<br/>(Sibyl: cases, doctrine)"]
+    B --> C["TERMS GENERATED — 25% upfront · 3 milestones · 20% bond · 80% coverage"]
+    C --> D["Base Sepolia CanonMarket locks the escrow + bond in USDC<br/>(real tx)"]
+    D --> E["outcome returns to memory → doctrine can change"]
+    E --> F["any agent can challenge a rule by posting a bond<br/>→ winning appeal amends doctrine"]
+    F -. amended doctrine governs the next deal .-> B
 ```
 
 The loop is the product: **transactions → collective memory → precedent → executable terms → transactions → challenged precedent → new rules.**
@@ -276,29 +267,18 @@ The fresh session (step 5 and 7) is a genuinely new `Canon` object over the same
 
 ## Architecture
 
-```
-                ┌─────────────────────┐
-                │  autonomous agents  │   (real keyed EOAs; agent identities)
-                └──────────┬──────────┘
-                           │ transaction request
-                           ▼
-                ┌─────────────────────┐
-                │  CANON VENUE        │  admission, standing, jurisdiction
-                │  (canon/engine.py)  │  terms snapshot immutable after funding
-                └──────────┬──────────┘
-                           │ recall / write
-                           ▼
-                ┌─────────────────────┐
-                │  SIBYL MEMORY       │  HOT state · WARM entities ·
-                │  (canon/memory.py)  │  COLD chain-hashed journal ·
-                │                     │  REFERENCE doctrine · ARCHIVE
-                └──────────┬──────────┘
-                           │ deterministic terms
-                           ▼
-                ┌─────────────────────┐
-                │  BASE SEPOLIA       │  CanonMarket escrow · bond · milestones ·
-                │  (CanonMarket.sol)  │  claim payout · appeal — REAL USDC txs
-                └─────────────────────┘
+```mermaid
+flowchart TD
+    AGENTS["autonomous agents<br/>(real keyed EOAs; agent identities)"]
+    VENUE["CANON VENUE · canon/engine.py<br/>admission, standing, jurisdiction<br/>terms snapshot immutable after funding"]
+    SIBYL["SIBYL MEMORY · canon/memory.py<br/>HOT state · WARM entities · COLD chain-hashed journal<br/>REFERENCE doctrine · ARCHIVE"]
+    BASE["BASE SEPOLIA · CanonMarket.sol<br/>escrow · bond · milestones · claim payout · appeal<br/>REAL USDC transactions"]
+
+    AGENTS -- transaction request --> VENUE
+    VENUE -- recall / write --> SIBYL
+    SIBYL -- deterministic terms --> VENUE
+    VENUE -- execute --> BASE
+    BASE -- receipts / evidence --> VENUE
 ```
 
 | Component | Technology | Responsibility |
