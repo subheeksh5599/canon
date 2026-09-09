@@ -51,6 +51,9 @@ export function Sidebar({
           </span>
         )}
       </div>
+      <div className="px-1 pb-4">
+        <WalletChip disabled={disabled} />
+      </div>
       <nav className="flex flex-col gap-1">
         {NAV.map((n) => (
           <button
@@ -70,8 +73,7 @@ export function Sidebar({
           </button>
         ))}
       </nav>
-      <div className="mt-auto space-y-4 px-1">
-        <WalletChip disabled={disabled} />
+      <div className="mt-auto px-1">
         <div className="px-1 text-[11px] leading-relaxed text-muted-foreground">
           {disabled ? (
             <>
@@ -128,8 +130,8 @@ function WalletChip({ disabled }: { disabled?: boolean }) {
   };
 
   return (
-    <div className="border-t border-border pt-4">
-      <div className="term-mono mb-2 px-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+    <div className="rounded-sm border border-border bg-card px-2 py-2">
+      <div className="term-mono mb-1.5 text-[9px] uppercase tracking-widest text-muted-foreground">
         Wallet
       </div>
       {addr ? (
