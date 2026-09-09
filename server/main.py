@@ -61,6 +61,27 @@ async def unhandled_to_json(_, exc: Exception):
 market: dict[str, Any] = {"chain": {}}  # engine_id -> contract mirror registry
 
 
+def _load_state(c: Canon, name: str, default):
+    """Read a venue registry (txids / chain mirror) persisted as a WARM entity."""
+    try:
+        rec = c.seam.get_entity("market", name) or {}
+        for probe in (rec, rec.get("body") or {}):
+            if isinstance(probe, dict) and "value" in probe:
+                return probe["value"]
+    except Exception:
+        pass
+    return default
+
+
+def _save_state(c: Canon, name: str, value) -> None:
+    c.seam.set_entity("market", name, {"value": value})
+
+
+def _persist(c: Canon) -> None:
+    _save_state(c, "txids", market["txids"])
+    _save_state(c, "chainmap", market["chain"])
+
+
 def fresh_market() -> Canon:
     """Load the persistent venue market; a genuinely empty file is FOUNDED by
     charter (one declared rule, zero fabricated case evidence — see
@@ -74,8 +95,8 @@ def fresh_market() -> Canon:
         for actor in (BUYER, PROVIDER, PROVIDER2, JUDGE):
             canon.admit(actor)
     market["canon"] = canon
-    market["txids"] = []
-    market["chain"] = {}
+    market["txids"] = _load_state(canon, "txids", [])
+    market["chain"] = _load_state(canon, "chainmap", {}) or {}
     return canon
 
 
@@ -226,6 +247,7 @@ def create_tx(body: TxIn):
             digest=terms_digest(t.to_dict()))
         market["chain"][tx.tx_id] = {"contract_id": cid, "create": hash_}
         market.setdefault("txids", []).append(tx.tx_id)
+        _persist(c)
         return ok(tx=chain_info(tx.to_dict()), terms=t.to_dict())
     except CanonError as e:
         return err(e)
@@ -259,6 +281,7 @@ def execute(tx_id: str):
         hash_ = ch.fund(reg["contract_id"])
         tx = c.execute(tx_id, chain_ref=hash_)
         market["chain"][tx_id]["escrow"] = hash_
+        _persist(c)
         return ok(tx=chain_info(tx.to_dict()))
     except CanonError as e:
         return err(e)
@@ -276,6 +299,7 @@ def complete(tx_id: str, body: ActionIn):
             ch = chain_ctx()
             hash_ = ch.mark_completed(reg["contract_id"], ok=True)
             market["chain"][tx_id]["complete"] = hash_
+            _persist(c)
         return ok(tx=chain_info(tx.to_dict()))
     except CanonError as e:
         return err(e)
@@ -293,6 +317,7 @@ def fail(tx_id: str, body: ActionIn):
             ch = chain_ctx()
             hash_ = ch.mark_completed(reg["contract_id"], ok=False)
             market["chain"][tx_id]["fail"] = hash_
+            _persist(c)
         return ok(tx=chain_info(tx.to_dict()))
     except CanonError as e:
         return err(e)
@@ -318,6 +343,7 @@ def claim(tx_id: str, body: ClaimIn):
         hash_ = ch.resolve_claim(reg["contract_id"], payee=BUYER,
                                  escrow_refund_usd=escrow_refund, coverage_usd=coverage)
         market["chain"][tx_id]["claim"] = hash_
+        _persist(c)
         tx = c.venue.require_tx(tx_id)
         return ok(result=res, tx=chain_info(tx.to_dict()), claim_tx_hash=hash_,
                   claim_explorer=explorer_url(hash_),
@@ -372,6 +398,7 @@ def open_appeal(body: AppealIn):
         aid, hash_ = ch.open_appeal(body.challenger, body.target_rule_id, bond_usd=body.bond_usd)
         market["chain"].setdefault(f"appeal:{a.appeal_id}", {})["contract_id"] = aid
         market["chain"][f"appeal:{a.appeal_id}"]["open"] = hash_
+        _persist(c)
         return ok(appeal=a.to_dict(), appeal_tx_hash=hash_, appeal_explorer=explorer_url(hash_))
     except CanonError as e:
         return err(e)
@@ -389,6 +416,7 @@ def resolve_appeal(appeal_id: str, body: ResolveIn):
             ch = chain_ctx()
             hash_ = ch.resolve_appeal(reg["contract_id"], accepted=body.decision == "ACCEPTED")
             market["chain"][f"appeal:{appeal_id}"]["resolve"] = hash_
+            _persist(c)
         return ok(appeal=a.to_dict(), doctrine_version=c.doctrine_now().version)
     except CanonError as e:
         return err(e)

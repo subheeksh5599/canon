@@ -54,6 +54,16 @@ export type Tx = {
   terms: Terms | null;
   escrow_locked_usd: number;
   chain_ref: string | null;
+  chain?: {
+    configured?: boolean;
+    contract_id?: number;
+    create?: string;
+    escrow?: string;
+    fail?: string;
+    claim?: string;
+    complete?: string;
+  };
+  explorer?: string;
   outcome?: string | null;
   created_at: string;
 };
