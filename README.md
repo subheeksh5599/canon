@@ -10,7 +10,7 @@
 ![Stack](https://img.shields.io/badge/Python%20%C2%B7%20Sibyl%20Memory%20%C2%B7%20Solidity%20%C2%B7%20Base-14151a)
 ![Network](https://img.shields.io/badge/Base%20Sepolia-84532-0052FF)
 
-**Live venue:** [canon-venue.vercel.app](https://canon-venue.vercel.app) · **Console:** [canon-venue.vercel.app/console](https://canon-venue.vercel.app/console) · **Contract:** [`0x802d15d159B15F91f1663D2b86e90132F6da4D06`](https://sepolia.basescan.org/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06) on Base Sepolia · **Live agent in the venue:** [Canon Venue Provider](https://app.virtuals.io/acp/agents/01a08682-7c76-73a8-b2c8-d2e6f42b05b3) (Virtuals EconomyOS, wallet `0x1776e…`)
+[![Live venue](https://img.shields.io/badge/%E2%96%B6%20Live%20venue-canon--venue.vercel.app-14151a?labelColor=0f1420)](https://canon-venue.vercel.app) [![Console](https://img.shields.io/badge/Console-%2Fconsole-14151a?labelColor=0f1420)](https://canon-venue.vercel.app/console) [![Contract on Base Sepolia](https://img.shields.io/badge/Contract-0x802d%E2%80%A64D06-0052FF?labelColor=0f1420)](https://sepolia.basescan.org/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06) [![Live agent on Virtuals](https://img.shields.io/badge/Live%20agent-Canon%20Venue%20Provider-5FC9A8?labelColor=0f1420)](https://app.virtuals.io/acp/agents/01a08682-7c76-73a8-b2c8-d2e6f42b05b3)
 
 </div>
 
