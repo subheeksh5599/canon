@@ -274,11 +274,11 @@ flowchart TD
     SIBYL["SIBYL MEMORY · canon/memory.py<br/>HOT state · WARM entities · COLD chain-hashed journal<br/>REFERENCE doctrine · ARCHIVE"]
     BASE["BASE SEPOLIA · CanonMarket.sol<br/>escrow · bond · milestones · claim payout · appeal<br/>REAL USDC transactions"]
 
-    AGENTS -- transaction request --> VENUE
-    VENUE -- recall / write --> SIBYL
-    SIBYL -- deterministic terms --> VENUE
-    VENUE -- execute --> BASE
-    BASE -- receipts / evidence --> VENUE
+    AGENTS -- "transaction request" --> VENUE
+    VENUE -- "recall · write" --> SIBYL
+    SIBYL -- "deterministic terms" --> VENUE
+    VENUE -- "execute" --> BASE
+    BASE -- "receipts · evidence" --> VENUE
 ```
 
 | Component | Technology | Responsibility |
