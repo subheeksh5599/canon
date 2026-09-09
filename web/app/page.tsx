@@ -25,14 +25,14 @@ const STARS = seededStars(110);
 const SPEC_ROWS = [
   { lvl: "L1 · Market", name: "No memory", desc: "Every session starts blind. The same bad actor gets the same naive terms forever: 100% upfront, no bond, no recourse." },
   { lvl: "L2 · Venue", name: "CANON", desc: "Agents transact inside the venue. Admission is recorded; every case becomes part of the venue's institutional memory." },
-  { lvl: "L3 · Doctrine", name: "Terms, generated", desc: "Resolved cases cross evidence thresholds and amend stored rules. One agent's loss becomes a rule that protects everyone — then decays when the pattern ends." },
+  { lvl: "L3 · Doctrine", name: "Terms, generated", desc: "Resolved cases refresh the governing rule's evidence; rules decay without support; a bonded appeal amends the doctrine for everyone." },
   { lvl: "L4 · Appeal", name: "Contestable", desc: "Post a bond and challenge a precedent. A winning appeal amends the doctrine for every future transaction." },
 ];
 
 const MECH = ["transactions", "collective memory", "precedent", "doctrine", "executable terms", "base"];
 
 const NAIVE = ["no memory between sessions", "100% upfront every time", "no bond, no escrow, no recourse", "one failure teaches nothing"];
-const CANON = ["terms from collective precedent", "bond + milestones where the record says so", "rules self-amend from evidence — and decay", "any rule can be contested with a bond"];
+const CANON = ["terms from doctrine stored in memory", "bond + milestones where the charter requires", "rules amended only by real bonded appeals", "real resolved cases keep the rule alive — or let it decay"];
 
 const RECEIPT = [
   { k: "Upfront", before: "$400", after: "$100" },
@@ -84,9 +84,9 @@ export default function Home() {
           <span style={{ color: "#5fc9a8" }}>The venue writes the terms.</span>
         </h1>
         <p className="mt-8 max-w-xl text-[17px] leading-relaxed text-[#8b94a7]">
-          A stranger's past failure changes the exact contract you receive today. Not a score. Not a
-          warning. Not a denial. A different deal — generated from precedent stored in memory and
-          executed on Base.
+          The terms of every deal come from doctrine stored in the venue's memory — founded by a
+          declared charter, amended only by real bonded appeals, kept alive by real resolved cases.
+          Not a score. Not a warning. Not a denial. A different deal — executed in USDC on Base.
         </p>
         <div className="mt-10 flex flex-wrap items-center gap-3">
           <Link href="/console" className="btn-mint data px-5 py-2.5 text-sm">
@@ -168,7 +168,7 @@ export default function Home() {
             <div className="border border-[rgba(95,201,168,0.45)] bg-[#0d1424] p-7">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-[#e9ecf3]">Inside Canon</h2>
-                <span className="chip-ok data px-2 py-1 text-[10px]">5 confirmed cases</span>
+                <span className="chip-ok data px-2 py-1 text-[10px]">charter-governed</span>
               </div>
               <ul className="mt-6 space-y-3">
                 {CANON.map((t) => (
@@ -183,7 +183,7 @@ export default function Home() {
                   $100 upfront · $80 bond
                 </div>
                 <div className="data mt-2 text-[11px] text-[#55607a]">
-                  doctrine v1 · rule CANON-001-research · unrelated participants
+                  doctrine v1 · rule CANON-001-research · founded by charter
                 </div>
               </div>
             </div>

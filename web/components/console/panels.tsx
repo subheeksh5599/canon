@@ -18,14 +18,13 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 
-export type Section = "overview" | "deal" | "transactions" | "institution" | "judge";
+export type Section = "overview" | "deal" | "transactions" | "institution";
 
 const NAV: { id: Section; label: string; icon: typeof Activity }[] = [
   { id: "overview", label: "Overview", icon: Activity },
   { id: "deal", label: "New transaction", icon: Sparkles },
   { id: "transactions", label: "Transactions", icon: ArrowRight },
   { id: "institution", label: "Doctrine · cases · appeals", icon: Scale },
-  { id: "judge", label: "Verification", icon: Landmark },
 ];
 
 export function Sidebar({
@@ -315,7 +314,7 @@ export function TermsCard({ terms }: { terms: Terms }) {
 }
 
 export function DealStudio({ onDone }: { onDone: () => void }) {
-  const [provider, setProvider] = useState("0xprov000000000000000000000000000003");
+  const [provider, setProvider] = useState("0x31eafd3fe36d6c891ea5b369a876166dffabf320");
   const [amount, setAmount] = useState("400");
   const [terms, setTerms] = useState<Terms | null>(null);
   const [tx, setTx] = useState<Tx | null>(null);
@@ -378,7 +377,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
           <div>
             <Label>Counterparty</Label>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {(["0xprov000000000000000000000000000002", "0xprov000000000000000000000000000003"] as const).map((p) => (
+              {(["0x20fd7bec60829230a1cfbe4caf25a12ab2e49aa9", "0x31eafd3fe36d6c891ea5b369a876166dffabf320"] as const).map((p) => (
                 <button
                   key={p}
                   onClick={() => setProvider(p)}
@@ -469,7 +468,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
               <span>doctrine v{claimRes.doctrine_version_after}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Five confirmed failures in this job class will amend the doctrine — then run the verification proofs
+              A resolved case records real evidence; a bonded appeal amends the doctrine.
               and run the fresh-session proof to see a different deal for the same request.
             </p>
           </CardContent>

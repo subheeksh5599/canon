@@ -295,7 +295,7 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 | `POST /api/transactions/{id}/complete` / `/fail` | delivered / failed | + contract `markCompleted` |
 | `POST /api/transactions/{id}/claim` | evidence-gated claim resolution | + contract `resolveClaim` (USDC payout) |
 | `POST /api/appeals` (+ `/resolve`) | bonded doctrine challenge | + contract `openAppeal` / `resolveAppeal` |
-| `GET /api/judge/{coldstart,deletion,ablation}` | the three memory proofs | memory only |
+| `GET /api/verify/deletion` | the REAL deletion gate — a consistent copy of the live market is wiped and must refuse to rule | memory only |
 | `GET /api/chain` | every real settlement tx + explorer links | read |
 
 ## Security model — what CANON refuses to trust
@@ -410,7 +410,7 @@ Exit codes: `deletion_test.py` returns `1` if CANON still works without memory �
 cd web && npm install && npm run dev
 ```
 
-The console drives the live engine: evaluate → doctrine terms → create & fund → delivered/failed → claim → doctrine changes → judge lab (cold start / deletion / ablation) — all real engine calls. When `SETTLE_KEY` + `CANONMARKET_ADDRESS` are set (Base Sepolia env), every money event executes on-chain and the console links each escrow lock / payout to its Basescan transaction; without them, settlement endpoints return an explicit configuration error — nothing is fabricated.
+The console drives the live engine: evaluate → doctrine terms → create & fund → delivered/failed → claim → doctrine changes → the deletion gate — all real engine calls on the live market. When `SETTLE_KEY` + `CANONMARKET_ADDRESS` are set (Base Sepolia env), every money event executes on-chain and the console links each escrow lock / payout to its Basescan transaction; without them, settlement endpoints return an explicit configuration error — nothing is fabricated.
 
 ## Gate artifacts
 

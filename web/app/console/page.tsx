@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Copy, TerminalSquare } from "lucide-react";
 import { engineConfigured } from "@/lib/api";
 import { Sidebar, Overview, DealStudio, Transactions, type Section } from "@/components/console/panels";
-import { AppealsView, CasesView, DoctrineView, JudgeLab } from "@/components/console/institution";
+import { AppealsView, CasesView, DoctrineView } from "@/components/console/institution";
 import { toast } from "sonner";
 
 function ConnectGate() {
@@ -57,8 +57,9 @@ function ConnectGate() {
               <div className="flex items-start gap-3">
                 <TerminalSquare className="mt-0.5 size-4 shrink-0" />
                 <div className="text-sm text-muted-foreground">
-                  Verification proofs: <span className="text-foreground">cold-start recall, deletion
-                  test, ablation</span> — each proof executes the real engine and prints its live result. Full walkthrough in the repo README.
+                  Then verify the venue: the <span className="text-foreground">deletion test</span> runs
+                  against a copy of the live market — remove the memory layer and the venue cannot
+                  construct terms. Every deal you run settles in real USDC on Base Sepolia.
                 </div>
               </div>
             </div>
@@ -107,7 +108,6 @@ export default function ConsolePage() {
               <CasesView bump={bump} />
             </div>
           )}
-          {section === "judge" && <JudgeLab bump={bump} />}
         </div>
       </main>
     </div>

@@ -34,8 +34,8 @@ export function DoctrineView({ bump }: { bump: number }) {
 
       {doc && doc.rules.length === 0 && (
         <Card><CardContent className="p-5 text-sm text-muted-foreground">
-          No doctrine yet — the venue is running on naive terms (100% upfront, no bond). Five confirmed
-          failures in a job class will write doctrine v1.
+          No doctrine yet — the venue is not founded. A venue must be chartered
+          before it can construct terms; after that, only real resolved cases and bonded appeals move it.
         </CardContent></Card>
       )}
 
@@ -107,7 +107,7 @@ export function AppealsView({ bump, onChanged }: { bump: number; onChanged: () =
       await api("/api/appeals", {
         method: "POST",
         body: JSON.stringify({
-          challenger: "0xprov000000000000000000000000000003",
+          challenger: "0x31eafd3fe36d6c891ea5b369a876166dffabf320",
           target_rule_id: ruleId, arguments: arguments_, bond_usd: Number(bond),
         }),
       });
@@ -207,100 +207,3 @@ export function CasesView({ bump }: { bump: number }) {
   );
 }
 
-type Proof = { pass_?: boolean; virgin_terms?: any; recalled_terms?: any; doctrine_version?: number; ts?: string; refusal?: string; naive?: any; governed?: any; reduction?: number };
-
-function ProofCard({ title, note, run, kind }: { title: string; note: string; run: () => Promise<Proof>; kind: "cold" | "del" | "abl" }) {
-  const [busy, setBusy] = useState(false);
-  const [res, setRes] = useState<Proof | null>(null);
-  const runOnce = async () => {
-    setBusy(true);
-    setRes(null);
-    try {
-      const r = await run();
-      setRes(r);
-      toast.success(r.pass_ === false ? `${title}: PROOF FAIL` : `${title}: live proof recorded`);
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Card className="border-border">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <ShieldCheck className="size-4 text-[#5fc9a8]" /> {title}
-        </CardTitle>
-        <CardDescription>{note}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <Button size="sm" onClick={runOnce} disabled={busy}><FlaskConical className={busy ? "animate-pulse" : ""} /> Run live</Button>
-        {res && (
-          <div className="term-mono rounded-lg border border-border bg-black/25 p-3 text-[11px] leading-relaxed">
-            {res.pass_ !== undefined && (
-              <div className={`mb-1 font-semibold ${res.pass_ ? "text-[#5fc9a8]" : "text-[#e06a5e]"}`}>
-                {res.pass_ ? "PROOF PASS" : "PROOF FAIL"}
-              </div>
-            )}
-            {kind === "cold" && (
-              <>
-                <div>virgin terms · doctrine v0 · bond {res.virgin_terms?.bond_usd}</div>
-                <div>recalled terms · doctrine v{res.doctrine_version} · bond {res.recalled_terms?.bond_usd}</div>
-                <div className="text-muted-foreground">a stranger's history changed the deal</div>
-              </>
-            )}
-            {kind === "del" && (
-              <div className="text-[#e06a5e]/90">{res.refusal ?? "??"}</div>
-            )}
-            {kind === "abl" && (
-              <>
-                <div>memoryless · upfront {res.naive?.upfront_usd} · bond {res.naive?.bond_usd}</div>
-                <div>history-aware · upfront {res.governed?.upfront_usd} · bond {res.governed?.bond_usd}</div>
-                <div>capital at risk reduced {Math.round((res.reduction ?? 0) * 100)}%</div>
-              </>
-            )}
-            {res.ts && <div className="text-muted-foreground">ts {res.ts}</div>}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-export function JudgeLab({ bump }: { bump: number }) {
-  return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-semibold tracking-[-0.03em]">Verification proofs</h1>
-      <p className="text-sm text-muted-foreground">
-        Every button runs the real engine against real Sibyl memory. No canned output, no precomputed
-        strings.
-      </p>
-      <div className="grid gap-4 lg:grid-cols-3">
-        <ProofCard
-          title="Cold start / fresh session"
-          note="A brand-new process over the seeded Sibyl file recalls doctrine written earlier and returns different terms for the same request."
-          kind="cold"
-          run={() => api<Proof>("/api/judge/coldstart")}
-        />
-        <ProofCard
-          title="Deletion test"
-          note="The gate: remove Sibyl and the venue cannot construct authoritative terms. Refusal is the product."
-          kind="del"
-          run={() => api<Proof>("/api/judge/deletion")}
-        />
-        <ProofCard
-          title="Ablation"
-          note="History-aware vs memoryless CANON on identical work — measured capital delta."
-          kind="abl"
-          run={() => api<Proof>("/api/judge/ablation")}
-        />
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Tip: run the full loop first — New transaction → lock escrow → provider failed → file claim.
-        After five confirmed failures the doctrine bumps, and the cold-start proof returns a bond where
-        there was none.
-      </p>
-    </div>
-  );
-}

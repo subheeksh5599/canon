@@ -17,6 +17,7 @@ import hashlib
 import json
 import os
 import shutil
+import sqlite3
 import sys
 import tempfile
 import time
@@ -33,7 +34,7 @@ from typing import Any, Optional
 from canon import Canon
 from canon.errors import CanonError
 from canon.chain import ChainError, configured as chain_configured, env_chain, explorer_url
-from scripts.seed_history import BUYER, PROVIDER, PROVIDER2, JUDGE, seed
+from scripts.seed_history import BUYER, PROVIDER, PROVIDER2, JUDGE
 
 ROOT = Path(__file__).resolve().parent.parent
 # Persistent venue DB (env CANON_DB overrides; the live venue must not live in /tmp)
@@ -423,40 +424,26 @@ def chain_view():
               mirror=market.get("chain", {}))
 
 
-# ----------------------------------------------------------------- judge lab
-def _naive_terms():
-    tmp = Path(tempfile.mktemp(suffix=".db"))
-    c = Canon(tmp)
-    c.admit(BUYER)
-    c.admit(PROVIDER2)
-    return c.evaluate(buyer=BUYER, provider=PROVIDER2,
-                      job_type="research agent", job_value_usd=20.0).to_dict()
-
-
-@app.get("/api/judge/coldstart")
-def judge_coldstart():
-    try:
-        tmp = Path(tempfile.mktemp(suffix=".db"))
-        c = Canon(tmp)
-        seed(c)
-        c.admit(PROVIDER2)
-        recalled = c.evaluate(buyer=BUYER, provider=PROVIDER2,
-                              job_type="research agent", job_value_usd=20.0).to_dict()
-        naive = _naive_terms()
-        return ok(pass_=naive["bond_usd"] == 0.0 and recalled["bond_usd"] > 0.0,
-                  virgin_terms=naive, recalled_terms=recalled,
-                  doctrine_version=c.doctrine_now().version, ts=c.clock.iso())
-    except CanonError as e:
-        return err(e)
-
-
-@app.get("/api/judge/deletion")
-def judge_deletion():
+# ------------------------------------------------------------------ verification
+@app.get("/api/verify/deletion")
+def verify_deletion():
+    """The real deletion gate against a copy of the LIVE market: remove the
+    Sibyl layer and the venue cannot construct terms. No fixture, no seed."""
     try:
         src = DEMO_DB
         tmp = Path(tempfile.mktemp(suffix=".db"))
         if src.exists():
-            shutil.copy2(src, tmp)
+            # consistent copy: the venue db runs in SQLite WAL mode, so a raw
+            # file copy misses committed data sitting in -wal
+            con = sqlite3.connect(src)
+            try:
+                out = sqlite3.connect(tmp)
+                try:
+                    con.backup(out)
+                finally:
+                    out.close()
+            finally:
+                con.close()
         c = Canon(tmp)
         with_memory = c.doctrine_now().version
         c.seam.delete_all()
@@ -469,23 +456,6 @@ def judge_deletion():
         except CanonError as e:
             refusal = f"{type(e).__name__}: {e}"
         return ok(pass_=refusal is not None, doctrine_before=with_memory, refusal=refusal)
-    except CanonError as e:
-        return err(e)
-
-
-@app.get("/api/judge/ablation")
-def judge_ablation():
-    try:
-        naive = _naive_terms()
-        tmp = Path(tempfile.mktemp(suffix=".db"))
-        c = Canon(tmp)
-        seed(c)
-        c.admit(PROVIDER2)
-        governed = c.evaluate(buyer=BUYER, provider=PROVIDER2,
-                              job_type="research agent", job_value_usd=20.0).to_dict()
-        return ok(pass_=governed["bond_usd"] > naive["bond_usd"],
-                  naive=naive, governed=governed,
-                  reduction=round(1 - governed["upfront_usd"] / naive["upfront_usd"], 4))
     except CanonError as e:
         return err(e)
 
