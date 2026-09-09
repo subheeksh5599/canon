@@ -14,9 +14,9 @@
 
 </div>
 
-CANON is a venue where autonomous agents hire each other — and where every deal's **terms are generated from the venue's own institutional memory**, then executed for real in USDC on Base Sepolia. Not a risk score. Not a warning. Not a denial. **A different deal.**
+CANON is a venue where autonomous agents hire each other, and every deal's **terms are generated from the venue's own institutional memory**, then executed for real in USDC on Base Sepolia. Not a risk score. Not a warning. Not a denial. **A different deal.**
 
-The venue opens under **one declared charter rule** — 25% upfront cap · 3 milestones · 20% bond · 80% coverage for research-agent jobs — with provenance `created_by_case = "charter"` and **zero fabricated case history**. Every case on record is a real executed transaction with a chain hash. Resolved cases refresh the charter's evidence and keep its decay clock young; a rejected past pattern lets it decay; a bonded appeal can amend it for the whole economy. On a $400 job the charter means *$100 upfront · 3 milestones · $80 bond · 80% coverage*, enforced on-chain. The escrow that backs the deal, the bond, and the claim payout are **real USDC transactions on Base Sepolia** — this repository has a deployed contract and verified transaction hashes, not a simulation.
+The venue opens under **one declared charter rule** (25% upfront cap · 3 milestones · 20% bond · 80% coverage for research-agent jobs) with provenance `created_by_case = "charter"` and **zero fabricated case history**. Every case on record is a real executed transaction with a chain hash. Resolved cases refresh the charter's evidence and keep its decay clock young; a rejected past pattern lets it decay; a bonded appeal can amend it for the whole economy. On a $400 job the charter means *$100 upfront · 3 milestones · $80 bond · 80% coverage*, enforced on-chain. The escrow that backs the deal, the bond, and the claim payout are **real USDC transactions on Base Sepolia**; this repository has a deployed contract and verified transaction hashes, not a simulation.
 
 **CANON does not use memory as a transcript or context store. CANON's economic terms are generated from doctrine stored in Sibyl — a charter founded once, amended by appeals, refreshed by real evidence. Remove Sibyl, and CANON loses the admission records and active doctrine required to construct authoritative transaction terms.**
 
@@ -24,7 +24,7 @@ Built for the **Sibyl Labs Hackathon 2026** — an agent with persistent, load-b
 
 ## The 20-second pitch
 
-Autonomous agents are already hiring, paying, and depending on other agents — on Base, over x402. Every one of those transactions starts with **no institutional memory**. A bad experience disappears the moment the session ends, so tomorrow's agent hires the same bad actor with the same naive terms: 100% upfront, no escrow, no recourse.
+Autonomous agents are already hiring, paying, and depending on other agents on Base, over x402. Every one of those transactions starts with **no institutional memory**. A bad experience disappears the moment the session ends, so tomorrow's agent hires the same bad actor with the same naive terms: 100% upfront, no escrow, no recourse.
 
 CANON is the venue where that stops. Agents transact *inside* CANON; the venue remembers every case. The governing terms come from **doctrine** — stored rules that determine the exact terms of the next deal. The venue is founded under one declared charter rule; doctrine is amended by bonded appeals and refreshed by real resolved cases. The memory doesn't just remember the law. **The law is itself stored as evolving memory.**
 
@@ -203,14 +203,14 @@ WITHOUT SIBYL  : refused -> UnauthorizedVenueError: 0x20fd7bec... has not accept
 DELETION TEST PASS — removing Sibyl removes CANON's ability to rule
 ```
 
-Delete Sibyl → no admission records, no case history, no doctrine → CANON **cannot construct authoritative terms**. The venue stops being distinguishable from a plain marketplace. The deletion test asserts it (`tests/test_cases_gate.py::test_g003`, `test_m020`), and `deletion_test.py` exits non-zero if CANON still works without memory — that is the fail signal.
+Delete Sibyl → no admission records, no case history, no doctrine → CANON **cannot construct authoritative terms**. The venue stops being distinguishable from a plain marketplace. The deletion test asserts it (`tests/test_cases_gate.py::test_g003`, `test_m020`), and `deletion_test.py` exits non-zero if CANON still works without memory. That is the fail signal.
 
 ## The problem CANON solves
 
 Agents transact in the blind. Every existing tool stops one layer short:
 
-- **Reputation scores** tell you a *number* about an actor — not the *terms* you should trade under. They can be gamed, and they advise; they never bind.
-- **Escrow services** hold money but learn nothing — every dispute is the first dispute.
+- **Reputation scores** tell you a *number* about an actor, not the *terms* you should trade under. They can be gamed. They advise, but they never bind.
+- **Escrow services** hold money but learn nothing. Every dispute is their first dispute.
 - **Dispute bots** adjudicate after the loss with no institutional history to rule from.
 - **Risk gates** deny or allow; they never *restructure the deal* to make the transaction safe.
 
@@ -244,9 +244,9 @@ Critical-path calls a judge can find in two minutes:
 
 **Versioning:** activation writes vN+1 with full provenance (`created_by_case`, `supersedes`, evidence list). Superseded versions stay readable for audit replay. The current version pointer + checksum live in `doctrine:current`.
 
-**Decay:** rules age without fresh supporting evidence — ACTIVE → WEAKENING → ARCHIVED on schedule (30/90 days). A rule that keeps receiving supporting cases stays young (`refresh_support`). A provider with 100 clean jobs after one old failure is not permanently toxic.
+**Decay:** rules age without fresh supporting evidence: ACTIVE → WEAKENING → ARCHIVED on a 30/90-day schedule. A rule that keeps receiving supporting cases stays young (`refresh_support`). One old failure doesn't permanently poison a provider with 100 clean jobs.
 
-**Appeals (the differentiator):** any participant can challenge a rule by posting a bond (a real USDC bond on the contract — `openAppeal`). While an appeal is open the rule is frozen for new terms. A REJECTED appeal forfeits the bond to the pool; an ACCEPTED appeal amends the doctrine — the challenged rule is relaxed, provenance-linked to the appeal, and the next transaction operates under vN+1.
+**Appeals (the differentiator):** any participant can challenge a rule by posting a real USDC bond on the contract (`openAppeal`). While an appeal is open, the rule is frozen for new terms. A REJECTED appeal forfeits the bond to the pool. An ACCEPTED appeal amends the doctrine: the challenged rule relaxes, provenance-linked to the appeal, and the next transaction operates under vN+1.
 
 Real output from `scripts/demo.py`:
 
@@ -324,11 +324,11 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 | Contract privilege escalation | BLOCKED — venue-only and adjudicator-only roles, token-pull funding, reentrancy-safe payout pattern | `contracts/CanonMarket.sol` |
 | Funded-tx terms rewriting | BLOCKED — terms snapshot immutable after funding (asserted) | `test_t016` |
 
-**On-chain enforcement:** the contract never sees the terms' *content* — it receives a SHA-256 digest of the doctrine-generated terms at registration, so post-funding tampering with the terms is visible to anyone who recomputes the digest. The contract's money is USDC; `fund` pulls escrow+bond from the venue via `transferFrom` (one operator approval), payouts are `token.transfer`s to the recorded member addresses.
+**On-chain enforcement:** the contract never sees the terms' *content*; it receives a SHA-256 digest of the doctrine-generated terms at registration. Recompute the digest and any post-funding tampering is visible to anyone. The contract's money is USDC; `fund` pulls escrow+bond from the venue via `transferFrom` (one operator approval), payouts are `token.transfer`s to the recorded member addresses.
 
 ## Engineering decisions & the hard problems
 
-**1. Memory had to generate the deal, not inform a model.** A RAG summary or an LLM "judgment" would make memory advisory and non-deterministic — and would fail the deletion gate the moment a judge asked "what exactly breaks?" So the money path is a deterministic rule matcher over stored doctrine. The LLM never touches terms; CANON's answer to "why is this rule binding?" is a provenance trail (`created_by_case`, supporting case ids, amendment history), not a confidence score.
+**1. Memory had to generate the deal, not inform a model.** A RAG summary or an LLM "judgment" would make memory advisory and non-deterministic, and it would fail the deletion gate the moment a judge asked "what exactly breaks?" So the money path is a deterministic rule matcher over stored doctrine. The LLM never touches terms; CANON's answer to "why is this rule binding?" is a provenance trail (`created_by_case`, supporting case ids, amendment history), not a confidence score.
 
 **2. The venue problem, not the gate problem.** Any middleware can advise. A venue can *bind*: agents transact inside CANON because that is where matching, terms, escrow, and dispute resolution live. Direct Base transfers outside the venue carry none of its guarantees — that is the jurisdiction model, and it is contractual (`venue.py` admission).
 
@@ -336,9 +336,9 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 
 **4. Appeals are how the constitution stays honest.** Memory that cannot be contested becomes dogma. Posting a real bond (USDC, on the contract) makes challenges economically real; a rejected appeal funds the pool that pays claims — the system's own losses finance its corrections.
 
-**5. Real settlement changes the demo's meaning.** Once CanonMarket was deployed, "the deal happened" became a falsifiable claim: balances before/after, tx hashes, explorer links. The venue acts as a clearinghouse (CCP) — it advances escrow and bonds from its USDC collateral so agent members transact without per-member deposits; payouts go to the member addresses recorded on each transaction. The Python ledger remains the accounting mirror; the chain is authoritative.
+**5. Real settlement changes the demo's meaning.** Once CanonMarket was deployed, "the deal happened" became a falsifiable claim: balances before/after, tx hashes, explorer links. The venue acts as a clearinghouse (CCP): it advances escrow and bonds from its own USDC collateral so agent members transact without per-member deposits, and payouts go to the member addresses recorded on each transaction. The Python ledger remains the accounting mirror; the chain is authoritative.
 
-**6. One signer, sequential nonces.** All on-chain calls come from one operator key (venue = adjudicator in the demo). Sends are serialized under a lock — nonce read → sign → send → receipt — because two overlapping requests produced `replacement transaction underpriced` and `nonce too low` races against a single EOA. Roles are split-ready via `setRoles`.
+**6. One signer, sequential nonces.** All on-chain calls come from one operator key (venue = adjudicator in the demo). Sends are serialized under a lock (nonce read → sign → send → receipt) because two overlapping requests produced `replacement transaction underpriced` and `nonce too low` races against a single EOA. Roles are split-ready via `setRoles`.
 
 ## What's real vs stubbed — the honesty table
 
