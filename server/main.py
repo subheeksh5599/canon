@@ -34,7 +34,7 @@ from typing import Any, Optional
 from canon import Canon
 from canon.errors import CanonError
 from canon.chain import ChainError, configured as chain_configured, env_chain, explorer_url
-from scripts.seed_history import BUYER, PROVIDER, PROVIDER2, JUDGE
+from scripts.seed_history import BUYER, PROVIDER, PROVIDER2, PROVIDER_VIRTUAL, JUDGE
 
 ROOT = Path(__file__).resolve().parent.parent
 # Persistent venue DB (env CANON_DB overrides; the live venue must not live in /tmp)
@@ -92,7 +92,7 @@ def fresh_market() -> Canon:
     else:
         canon = Canon(DEMO_DB)
         canon.establish_charter()
-        for actor in (BUYER, PROVIDER, PROVIDER2, JUDGE):
+        for actor in (BUYER, PROVIDER, PROVIDER2, PROVIDER_VIRTUAL, JUDGE):
             canon.admit(actor)
     market["canon"] = canon
     market["txids"] = _load_state(canon, "txids", [])

@@ -17,6 +17,7 @@ from canon.types import Outcome
 BUYER = "0x3991d5267e013fb9d5f2fbb30b8f3d8ff97c1ad9"  # real actor wallet (env: BUYER_KEY)
 PROVIDER = "0x20fd7bec60829230a1cfbe4caf25a12ab2e49aa9"  # real actor wallet (env: PROVIDER_KEY)
 PROVIDER2 = "0x31eafd3fe36d6c891ea5b369a876166dffabf320"  # real actor wallet (env: PROVIDER2_KEY)
+PROVIDER_VIRTUAL = "0x1776eba1f2c74b141d0c337ffcdbb0e40d77876b"  # Canon Venue Provider — agent registered on Virtuals EconomyOS
 JUDGE = "0x617b0e8d15c3a48ddf2ec70ab17bf7cc7dbf3046"  # real actor wallet (env: JUDGE_KEY)
 
 

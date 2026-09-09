@@ -393,7 +393,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
           <div>
             <Label>Counterparty</Label>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {(["0x20fd7bec60829230a1cfbe4caf25a12ab2e49aa9", "0x31eafd3fe36d6c891ea5b369a876166dffabf320"] as const).map((p) => (
+              {(["0x20fd7bec60829230a1cfbe4caf25a12ab2e49aa9", "0x31eafd3fe36d6c891ea5b369a876166dffabf320", "0x1776eba1f2c74b141d0c337ffcdbb0e40d77876b"] as const).map((p) => (
                 <button
                   key={p}
                   onClick={() => setProvider(p)}

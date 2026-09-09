@@ -93,5 +93,6 @@ export const ACTOR_LABEL: Record<string, string> = {
   "0x3991d5267e013fb9d5f2fbb30b8f3d8ff97c1ad9": "Buyer",
   "0x20fd7bec60829230a1cfbe4caf25a12ab2e49aa9": "Prov-01 · scarred",
   "0x31eafd3fe36d6c891ea5b369a876166dffabf320": "Prov-02 · new",
+  "0x1776eba1f2c74b141d0c337ffcdbb0e40d77876b": "Prov-03 · Virtuals agent",
   "0x617b0e8d15c3a48ddf2ec70ab17bf7cc7dbf3046": "Adjudicator",
 };
