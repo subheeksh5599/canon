@@ -126,7 +126,7 @@ Real captures of the live venue (`scripts/capture_shots.cjs`, headless Chromium 
 
 ![CANON landing](docs/media/canon-landing.png)
 
-**The console overview.** Live state from the running venue server: doctrine v1 (founded by charter), 0 fabricated cases, journal OK, and the real Base Sepolia settlement status — every settlement event executes on-chain and links to Basescan.
+**The console overview.** Live state from the running venue server: doctrine v2 (charter-founded, amended by a real bonded appeal), 1 real case on record, journal OK, and the real Base Sepolia settlement status — every settlement event executes on-chain and links to Basescan.
 
 ![CANON console](docs/media/canon-console.png)
 
@@ -156,7 +156,23 @@ The money provably moved (read live from the chain):
 
 Contract tx #2's final on-chain state: `status = 7 (Claimed)`, `escrowLocked = 0`, `bond = 0`, terms digest `0xf57822cf…` stored at registration. Every console transaction row links its escrow hash to Basescan.
 
-Deployment facts: CanonMarket `0x802d15d159B15F91f1663D2b86e90132F6da4D06`, deployed from `0x087ef173fb6F253DabFa89fA3a7756C5E8b1A1dA` (chain 84532, USDC token `0x036CbD53842c5426634e7929541eC2318f3dCF7E`); venue and adjudicator roles are held by the operator key in the demo and can be split with `setRoles(address,address)`.
+### Second run — the charter market, with roles split (Sep 09)
+
+Run after charter founding, on the live venue, with venue and adjudicator as **separate wallets** (split executed on-chain via `setRoles`):
+
+| Step | Contract | Transaction hash |
+|---|---|---|
+| Role split `setRoles` (VenueRuleChanged) | CanonMarket | [`0xa00e0418…a47d`](https://sepolia.basescan.org/tx/0xa00e04186511a6e97ac87fef5ca5fdfb6bb0965d975ab397f63949c29a5ea47d) |
+| Register $16 deal under charter terms | #3 | [`0xd956af44…175c`](https://sepolia.basescan.org/tx/0xd956af44165f06995141c2b683ce5980857b8eff706d9a4995fa0e8d3bff175c) |
+| **Escrow lock** $12 + $3.20 bond (venue signs) | | [`0x67c0dc0d…2da`](https://sepolia.basescan.org/tx/0x67c0dc0d3487ab9342e23b4c2af3ff4b036e0981680d0c9a0ce48696015cb2da) |
+| Provider failed | | [`0x1788ccde…16b8`](https://sepolia.basescan.org/tx/0x1788ccde346239f4968b93a9c5e35cf7e2ae56ca062845f4ed9c9f57802116b8) |
+| **Claim resolved** — $15.20 USDC to buyer (**adjudicator wallet signs**) | | [`0xc2deaefd…e29`](https://sepolia.basescan.org/tx/0xc2deaefd772dfb169788e2825330848635b790490ac24e6930ea8ccb7abe3e29) |
+| **Appeal opened** — real $5 USDC bond against the charter rule | #1 | [`0xcb3f5465…3402`](https://sepolia.basescan.org/tx/0xcb3f5465f4d33240d0c7b2a631b9433969e470ff302d4e57ff2084b2c2053402) |
+| **Appeal ACCEPTED** (adjudicator signs) → **doctrine v2**, bond ratio 0.20 → 0.10 | | [`0xd3e09df2…88e6`](https://sepolia.basescan.org/tx/0xd3e09df285d643a04210f4dac0f741380fed11f3ab754417a3873be74c6c88e6) |
+
+Post-run state read from the live API: doctrine **v2** (rule `CANON-001-research-ac61e`, `created_by: charter` provenance preserved, bond ratio relaxed by the accepted appeal), **1 real case** (TX_VERIFIED, claim hash referenced), venue USDC 21 → **0.80**, contract 0, chain pool 0. The console ledger shows every hash with an explorer link.
+
+Deployment facts: CanonMarket `0x802d15d159B15F91f1663D2b86e90132F6da4D06`, deployed from `0x087ef173fb6F253DabFa89fA3a7756C5E8b1A1dA` (chain 84532, USDC token `0x036CbD53842c5426634e7929541eC2318f3dCF7E`). Roles are SPLIT on-chain: venue `0x087e…`, adjudicator `0x617B…` (setRoles tx above); claims and appeal resolutions are signed by the adjudicator wallet.
 
 ## What CANON is NOT
 
@@ -347,7 +363,7 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 | Partner stacks | ✅ Base exercised — deployed CanonMarket + real contract interactions and USDC settlement shown in the demo. ⚠️ Virtuals NOT claimed — no Virtuals-native integration is exercised in the demo (the official multiplier rule: a claimed stack that is not exercised loses the bonus), so the multiplier is ×1.15 unless a real Virtuals element is added |
 | Agent counterparties | ✅ REAL — buyer/provider/judge are real keyed EOAs that appear on-chain in every settlement; claim evidence is TX_VERIFIED chain truth, not script assertions. Job outcomes (delivered/failed) are initiated from the console — the venue consumes evidence-gated outcomes, and full agent autonomy is future work (Limitations) |
 | Settlement wallet | ✅ REAL USDC settlement on Base Sepolia — testnet funds by design; identical contract, code, and math on mainnet (env-only change) |
-| Venue/adjudicator role split | ✅ REAL split wired in code — `ADJUDICATOR_KEY` routes claims/appeals to a separate signer wallet (`0x617B…3046`); the on-chain `setRoles` split executes once that wallet holds gas ETH |
+| Venue/adjudicator role split | ✅ REAL — split EXECUTED on-chain (`setRoles`, adjudicator `0x617B…3046`); claims and appeal resolutions in the receipt above are signed by the adjudicator wallet |
 | Contract source verification on Basescan | ✅ REAL — Sourcify [`exact_match`](https://sourcify.dev/#/lookup/0x802d15d159B15F91f1663D2b86e90132F6da4D06) (creation + runtime) and Blockscout [`Pass - Verified`](https://base-sepolia.blockscout.com/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06#code) |
 
 ## Tests
@@ -501,7 +517,7 @@ canon/
 
 - **One vertical by design**: software/research-agent contracts on one jurisdiction (internal label `acp-research`). Multi-jurisdiction doctrine propagation is documented but not built — the memory axis is proven on one spine instead of faked across many.
 - **The ledger is the venue's accounting mirror; the chain is authoritative**: the Python ledger tracks obligations for doctrine/claims logic; every settlement event (escrow lock, milestone release, claim payout, appeal bond/forfeit) executes as a genuine USDC transfer on Base Sepolia, and the console shows the real transaction hashes.
-- **Testnet settlement**: live on Base Sepolia (`0x802d15d159B15F91f1663D2b86e90132F6da4D06`), USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`; venue and adjudicator roles are held by the operator key in the demo and can be split via `setRoles`.
+- **Testnet settlement**: live on Base Sepolia (`0x802d15d159B15F91f1663D2b86e90132F6da4D06`), USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`; roles split on-chain — venue `0x087e…` and adjudicator `0x617B…` are separate wallets.
 - **Decay is time-based, not outcome-weighted**: a rule's status ages on a fixed schedule refreshed by supporting cases; per-actor outcome weighting beyond the counterparty file is future work.
 - **Proven at evaluation time**: terms are generated from the doctrine current when the transaction is evaluated; a funded transaction's terms are immutable (asserted by `test_t016`), so mid-job doctrine changes never rewrite a live deal.
 

@@ -169,6 +169,8 @@ def status():
         )
         if chain_configured():
             ch = env_chain()
+            # chain is authoritative for money: show the real on-chain pool
+            st["pool"] = float(ch.pool_usdc())
             st.update(
                 settlement="onchain",
                 chain_id=ch.chain_id,
