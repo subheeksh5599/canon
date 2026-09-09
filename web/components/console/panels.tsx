@@ -218,7 +218,7 @@ export function Overview({ bump }: { bump: number }) {
 
   const stats = [
     { k: "Doctrine", v: st ? `v${st.doctrine_version}` : "…", note: "stored in Sibyl REFERENCE" },
-    { k: "Resolved cases", v: st ? String(st.cases) : "…", note: "5 seed the demo market" },
+    { k: "Resolved cases", v: st ? String(st.cases) : "…", note: "real executed deals · TX_VERIFIED evidence" },
     { k: "Journal", v: st ? (st.journal_ok ? "chain intact" : "BROKEN") : "…", note: "hash-verified" },
     { k: "Pool", v: st ? fmt(st.pool) : "…", note: "fees + forfeited bonds" },
   ];
