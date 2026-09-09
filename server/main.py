@@ -336,6 +336,27 @@ def fail(tx_id: str, body: ActionIn):
         return err(e)
 
 
+@app.post("/api/transactions/{tx_id}/cancel")
+def cancel(tx_id: str):
+    c = get_canon()
+    try:
+        tx = c.cancel(tx_id)
+        reg = market["chain"].get(tx_id)
+        chain_hash = None
+        if reg and reg.get("contract_id") and chain_configured():
+            # flip the on-chain registration to Cancelled (TERMED deals hold
+            # zero escrow, so no money moves) — best-effort if the RPC is down
+            try:
+                chain_hash = chain_ctx().cancel(reg["contract_id"])
+                market["chain"][tx_id]["cancel"] = chain_hash
+            except Exception:
+                pass  # engine state is authoritative for unfunded deals
+        _persist(c)
+        return ok(tx=chain_info(tx.to_dict()), cancel_tx_hash=chain_hash)
+    except CanonError as e:
+        return err(e)
+
+
 @app.post("/api/transactions/{tx_id}/claim")
 def claim(tx_id: str, body: ClaimIn):
     c = get_canon()

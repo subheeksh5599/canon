@@ -212,6 +212,30 @@ class Venue:
         self._transition(tx, TxState.IN_PROGRESS)
         return tx
 
+    def cancel(self, tx_id: str) -> Transaction:
+        """Abandon a deal that never locked escrow (TERMED only).
+
+        A TERMED deal has escrow_locked_usd == 0, so cancel moves no money:
+        the on-chain registration (if any) is flipped to Cancelled by the
+        venue. FUNDED deals are NOT cancellable through this path — a funded
+        cancel would refund the buyer while the clearinghouse advanced the
+        collateral, so it is refused here on purpose.
+        """
+        tx = self.require_tx(tx_id)
+        if tx.state is not TxState.TERMED:
+            raise ConflictError(
+                f"only unfunded (TERMED) deals can be cancelled, this deal is {tx.state.value}")
+        if tx.escrow_locked_usd:
+            raise ConflictError("escrow is locked — cancel would strand funds; resolve first")
+        self._transition(tx, TxState.CANCELLED)
+        self._seam.write_event(
+            evaluated={"tx_id": tx_id, "reason": "abandoned before funding"},
+            acted="tx.cancel",
+            forward=tx_id,
+            extra={"event": "TX_CANCELLED"},
+        )
+        return tx
+
     def complete(self, tx_id: str, *, outcome="DELIVERED", chain_ref: Optional[str] = None) -> Transaction:
         tx = self.require_tx(tx_id)
         if outcome not in ("DELIVERED", "PARTIAL"):

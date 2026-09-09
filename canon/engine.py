@@ -177,6 +177,10 @@ class Canon:
         )
         return tx
 
+    def cancel(self, tx_id: str) -> Transaction:
+        """Abandon a TERMED (unfunded) deal — no money moves."""
+        return self.venue.cancel(tx_id)
+
     # ------------------------------------------------------------ claim path
     def file_and_resolve_claim(self, *, tx_id: str, buyer: str, verifier: str,
                                evidence: list[dict[str, Any]]) -> dict[str, Any]:

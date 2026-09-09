@@ -54,7 +54,7 @@ The loop is the product: **transactions → collective memory → precedent → 
 - [What's real vs stubbed — the honesty table](#whats-real-vs-stubbed--the-honesty-table)
 - [Tests](#tests)
 - [Run it yourself](#run-it-yourself)
-- [Run the venue UI](#run-the-venue-ui-landing--judge-console)
+- [Run the venue UI](#run-the-venue-ui-landing--console)
 - [Gate artifacts](#gate-artifacts)
 - [Deploy (Base)](#deploy-base)
 - [Project layout](#project-layout)
@@ -408,7 +408,7 @@ python -m pytest tests/ -q
 
 Exit codes: `deletion_test.py` returns `1` if CANON still works without memory — that is the fail signal.
 
-## Run the venue UI (landing + judge console)
+## Run the venue UI (landing + console)
 
 ```bash
 # terminal 1 — the CANON server (real engine + real Sibyl memory + real settlement when env is set)
@@ -425,7 +425,7 @@ The console drives the live engine: evaluate → doctrine terms → create & fun
 - **Cold start / fresh session** — `scripts/fresh_session.py`: two genuinely separate `Canon` processes over one Sibyl file; session B recalls doctrine written by session A and returns different terms for the same request (timestamped output for the video).
 - **Deletion test** — `scripts/deletion_test.py`: WITH Sibyl → authoritative terms; WITHOUT → `UnauthorizedVenueError`; CANON cannot construct the transaction.
 - **Ablation** — `scripts/ablation.py`: identical venue, agents, job, capital — only memory differs. Measured result: 100% → 25% capital at risk, $0 → $80 bond on identical work.
-- **Canonical demo** — `scripts/demo.py`: the 16-step judge sequence, no improv, same result every run.
+- **Canonical demo** — `scripts/demo.py`: the 16-step canonical sequence, no improv, same result every run.
 
 ## Deploy (Base)
 
@@ -475,7 +475,7 @@ canon/
 │   ├── fresh_session.py # gate artifact 1
 │   ├── deletion_test.py # gate artifact 2
 │   ├── ablation.py      # gate artifact 3
-│   └── demo.py          # canonical 16-step judge sequence
+│   └── demo.py          # canonical 16-step sequence
 ├── tests/               # 175 tests across 8 suites
 ├── web/                 # Next.js venue site (landing + console) — canon-venue.vercel.app
 ├── MEMORY-NOTE.md       # memory implementation note (submission requirement)

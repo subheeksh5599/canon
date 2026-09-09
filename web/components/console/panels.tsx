@@ -220,7 +220,7 @@ export function Overview({ bump }: { bump: number }) {
     { k: "Doctrine", v: st ? `v${st.doctrine_version}` : "…", note: "stored in Sibyl REFERENCE" },
     { k: "Resolved cases", v: st ? String(st.cases) : "…", note: "real executed deals · TX_VERIFIED evidence" },
     { k: "Journal", v: st ? (st.journal_ok ? "chain intact" : "BROKEN") : "…", note: "hash-verified" },
-    { k: "Pool", v: st ? fmt(st.pool) : "…", note: "fees + forfeited bonds" },
+    { k: "Pool", v: st ? fmt(st.pool) : "…", note: "fees + forfeited bonds · escrow/bonds are held by the contract" },
   ];
 
   return (
@@ -393,6 +393,13 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
     findOpen();
   });
 
+  const cancelDeal = () => run("cancel", async () => {
+    const r = await api<{ tx: Tx }>(`/api/transactions/${tx!.tx_id}/cancel`, { method: "POST", body: "{}" });
+    setTx(r.tx); onDone();
+    toast.success("Deal cancelled — nothing was funded");
+    findOpen();
+  });
+
   const claim = () => run("claim", async () => {
     const r = await api<{ result: any }>(`/api/transactions/${tx!.tx_id}/claim`, {
       method: "POST", body: JSON.stringify({ evidence_source: evidence }),
@@ -409,6 +416,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
   };
 
   const canFund = tx && tx.state === "TERMED";
+  const canCancel = tx && tx.state === "TERMED";
   const canFinish = tx && (tx.state === "FUNDED");
   const canClaim = tx && tx.state === "FAILED";
 
@@ -489,6 +497,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {canFund && <Button onClick={() => act("execute")} disabled={busy !== null}>Lock escrow + bond</Button>}
+            {canCancel && <Button variant="ghost" className="text-[#e06a5e] hover:text-[#e06a5e] hover:bg-[rgba(224,106,94,0.08)]" onClick={cancelDeal} disabled={busy !== null}>Cancel deal · never funded</Button>}
             {canFinish && <Button onClick={() => act("complete")} disabled={busy !== null}><CheckCircle2 /> Delivered</Button>}
             {canFinish && <Button variant="destructive" onClick={() => act("fail")} disabled={busy !== null}><XCircle /> Provider failed</Button>}
             {canClaim && (

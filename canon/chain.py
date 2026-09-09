@@ -189,6 +189,10 @@ class Chain:
         return self._send(self._market_c.functions.markCompleted(contract_id, ok),
                           "markCompleted")
 
+    def cancel(self, contract_id: int) -> str:
+        """Venue cancels an unfunded/refundable deal on-chain (refunds escrow+bond to buyer)."""
+        return self._send(self._market_c.functions.cancel(contract_id), "cancel deal")
+
     def resolve_claim(self, contract_id: int, payee: str, escrow_refund_usd: float,
                       coverage_usd: float) -> str:
         return self._send(self._market_c.functions.resolveClaim(
