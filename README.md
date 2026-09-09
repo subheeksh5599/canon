@@ -126,7 +126,7 @@ Real captures of the live venue (`scripts/capture_shots.cjs`, headless Chromium 
 
 ![CANON landing](docs/media/canon-landing.png)
 
-**The console overview.** Live state from the running venue server: doctrine v2 (charter-founded, amended by a real bonded appeal), 1 real case on record, journal OK, and the real Base Sepolia settlement status — every settlement event executes on-chain and links to Basescan.
+**The console overview.** Live state from the running venue server: doctrine v2 (charter-founded, amended by a real bonded appeal), real cases and settled deals on record, journal OK, and the real Base Sepolia settlement status — every settlement event executes on-chain and links to Basescan.
 
 ![CANON console](docs/media/canon-console.png)
 

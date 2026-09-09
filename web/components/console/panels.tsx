@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Activity, ArrowRight, CheckCircle2, FileText, Landmark, Layers,
-  RefreshCw, Scale, ScrollText, Sparkles, XCircle,
+  RefreshCw, Scale, ScrollText, ShieldCheck, Sparkles, XCircle,
 } from "lucide-react";
 import { api, ACTOR_LABEL, EXPLORER, fmt, isTxHash, short, type Terms, type Tx } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
@@ -18,13 +18,14 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 
-export type Section = "overview" | "deal" | "transactions" | "institution";
+export type Section = "overview" | "deal" | "transactions" | "institution" | "integrity";
 
 const NAV: { id: Section; label: string; icon: typeof Activity }[] = [
   { id: "overview", label: "Overview", icon: Activity },
   { id: "deal", label: "New transaction", icon: Sparkles },
   { id: "transactions", label: "Transactions", icon: ArrowRight },
   { id: "institution", label: "Doctrine · cases · appeals", icon: Scale },
+  { id: "integrity", label: "Integrity", icon: ShieldCheck },
 ];
 
 export function Sidebar({
@@ -413,7 +414,9 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
             </div>
             <div>
               <Label htmlFor="amt">Job value (USD)</Label>
-              <Input id="amt" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} className="mt-1.5 term-mono" />
+              <Input id="amt" type="number" min={0} step={0.01} value={amount}
+                onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1"))}
+                className="mt-1.5 term-mono" />
             </div>
           </div>
           <div className="flex gap-2">

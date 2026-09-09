@@ -5,6 +5,7 @@ import { ArrowRight, Copy, TerminalSquare } from "lucide-react";
 import { engineConfigured } from "@/lib/api";
 import { Sidebar, Overview, DealStudio, Transactions, type Section } from "@/components/console/panels";
 import { AppealsView, CasesView, DoctrineView } from "@/components/console/institution";
+import { IntegrityView } from "@/components/console/integrity";
 import { toast } from "sonner";
 
 function ConnectGate() {
@@ -101,6 +102,7 @@ export default function ConsolePage() {
           {section === "overview" && <Overview bump={bump} />}
           {section === "deal" && <DealStudio onDone={changed} />}
           {section === "transactions" && <Transactions bump={bump} />}
+          {section === "integrity" && <IntegrityView />}
           {section === "institution" && (
             <div className="space-y-6">
               <DoctrineView bump={bump} />
