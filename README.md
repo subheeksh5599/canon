@@ -172,6 +172,18 @@ Run after charter founding, on the live venue, with venue and adjudicator as **s
 
 Post-run state read from the live API: doctrine **v2** (rule `CANON-001-research-ac61e`, `created_by: charter` provenance preserved, bond ratio relaxed by the accepted appeal), **1 real case** (TX_VERIFIED, claim hash referenced), venue USDC 21 → **0.80**, contract 0, chain pool 0. The console ledger shows every hash with an explorer link.
 
+### Third run — a registered Virtuals agent transacts inside the venue (Sep 09)
+
+The agent ["Canon Venue Provider"](https://app.virtuals.io/acp/agents/01a08682-7c76-73a8-b2c8-d2e6f42b05b3) — registered on Virtuals EconomyOS (agent `01a08682-7c76-73a8-b2c8-d2e6f42b05b3`, EVM wallet `0x1776eba1f2c74b141d0c337ffcdbb0e40d77876b`, `canon_venue_provider@agents.world`, GitHub-verified) — is admitted into the venue as counterparty **Prov-03 · Virtuals agent** (the console lists it beside the venue's own wallets). It was hired for a $16 research job under the live charter doctrine (v2): $6.40 upfront / $9.60 escrow across 3 milestones / $1.60 bond, terms digest hashed at registration. The venue advanced escrow + bond as clearinghouse; **the agent delivered and received the $9.60 escrow payout in its own wallet**.
+
+| Step | Contract | Transaction hash |
+|---|---|---|
+| Register $16 deal, provider = Virtuals agent `0x1776e…` | #9 | [`0x3b3020d6…ff71`](https://sepolia.basescan.org/tx/0x3b3020d64fc1cc2199d02e499067d906b6b1236e1a042d615b79b5784c3bff71) |
+| **Escrow lock** $9.60 + $1.60 bond (venue signs, CCP) | | [`0x28dd0366…74d1`](https://sepolia.basescan.org/tx/0x28dd0366e1e67e231eb1926078f75309fde63fea6102c7c5f922297e176474d1) |
+| **Agent delivered — escrow paid to the agent's wallet** | | [`0x292c599d…3690`](https://sepolia.basescan.org/tx/0x292c599db990f78c038091667a0528888fdda1683be4e603374326fac5323690) |
+
+All three receipts verified `status = 0x1` via RPC. Post-run state read on-chain: agent wallet USDC 0 → **9.60**, venue 20.41 → 9.21, contract holds 1.60 (the bond, returned to the venue when the deal's appeal window closes). Ledger state: `COMPLETED`, every hash explorer-linked in the console.
+
 Deployment facts: CanonMarket `0x802d15d159B15F91f1663D2b86e90132F6da4D06`, deployed from `0x087ef173fb6F253DabFa89fA3a7756C5E8b1A1dA` (chain 84532, USDC token `0x036CbD53842c5426634e7929541eC2318f3dCF7E`). Roles are SPLIT on-chain: venue `0x087e…`, adjudicator `0x617B…` (setRoles tx above); claims and appeal resolutions are signed by the adjudicator wallet.
 
 ## What CANON is NOT
@@ -360,8 +372,9 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 | Console + API served live | ✅ REAL — Vercel → venue server on the VPS (systemd), proxied `/api/*` |
 | Contract tested | ✅ REAL — 20-test Foundry battery on the local EVM |
 | Founding history | ✅ REAL — founded by ONE declared charter rule (`created_by_case = "charter"`, zero fabricated cases). Every case on the live market is a real executed transaction; doctrine changes only via appeals, decay, or real-case refresh. Gate scripts use a seeded fixture market for the memory proofs (harness, labeled) |
-| Partner stacks | ✅ Base exercised — deployed CanonMarket + real contract interactions and USDC settlement shown in the demo. ⚠️ Virtuals NOT claimed — no Virtuals-native integration is exercised in the demo (the official multiplier rule: a claimed stack that is not exercised loses the bonus), so the multiplier is ×1.15 unless a real Virtuals element is added |
+| Partner stacks | ✅ **Two stacks exercised** — Base (deployed CanonMarket + real contract interactions and USDC settlement in the demo) **and** Virtuals (a real EconomyOS-registered agent admitted into the venue and paid in USDC for a delivered job — see the Virtuals row). Multiplier claim: ×1.25 |
 | Agent counterparties | ✅ REAL — buyer/provider/judge are real keyed EOAs that appear on-chain in every settlement; claim evidence is TX_VERIFIED chain truth, not script assertions. Job outcomes (delivered/failed) are initiated from the console — the venue consumes evidence-gated outcomes, and full agent autonomy is future work (Limitations) |
+| Virtuals partner stack | ✅ EXERCISED — a real agent registered on Virtuals EconomyOS ("Canon Venue Provider", `01a08682-…`, wallet `0x1776e…`) is admitted into the venue as counterparty Prov-03 and **received a $9.60 USDC escrow payout** for a delivered job (third-run receipt above). ⚠️ its Virtuals compute endpoint returns 402 insufficient credits ($0 balance, DevRel approval pending) — the agent's inference isn't claimed |
 | Settlement wallet | ✅ REAL USDC settlement on Base Sepolia — testnet funds by design; identical contract, code, and math on mainnet (env-only change) |
 | Venue/adjudicator role split | ✅ REAL — split EXECUTED on-chain (`setRoles`, adjudicator `0x617B…3046`); claims and appeal resolutions in the receipt above are signed by the adjudicator wallet |
 | Contract source verification on Basescan | ✅ REAL — Sourcify [`exact_match`](https://sourcify.dev/#/lookup/0x802d15d159B15F91f1663D2b86e90132F6da4D06) (creation + runtime) and Blockscout [`Pass - Verified`](https://base-sepolia.blockscout.com/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06#code) |

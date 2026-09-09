@@ -92,8 +92,10 @@ def fresh_market() -> Canon:
     else:
         canon = Canon(DEMO_DB)
         canon.establish_charter()
-        for actor in (BUYER, PROVIDER, PROVIDER2, PROVIDER_VIRTUAL, JUDGE):
-            canon.admit(actor)
+    # admission is idempotent and runs every boot so venue members added after
+    # founding (e.g. the Virtuals EconomyOS agent) are admitted on deploy
+    for actor in (BUYER, PROVIDER, PROVIDER2, PROVIDER_VIRTUAL, JUDGE):
+        canon.admit(actor)
     market["canon"] = canon
     market["txids"] = _load_state(canon, "txids", [])
     market["chain"] = _load_state(canon, "chainmap", {}) or {}
