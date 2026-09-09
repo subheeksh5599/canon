@@ -170,10 +170,11 @@ function WalletChip({ disabled }: { disabled?: boolean }) {
 }
 
 function TxLink({ hash, label }: { hash?: string | null; label?: string }) {
-  if (!hash || !isTxHash(hash)) return null;
+  const clean = hash && !hash.startsWith("0x") ? `0x${hash}` : hash;
+  if (!clean || !isTxHash(clean)) return null;
   return (
     <a
-      href={`${EXPLORER}/tx/${hash}`}
+      href={`${EXPLORER}/tx/${clean}`}
       target="_blank"
       rel="noreferrer"
       className="term-mono text-[10px] text-[#5fc9a8] underline decoration-[#5fc9a8]/40 underline-offset-2 hover:text-[#74d4b6]"
@@ -359,12 +360,23 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
     toast.success("Transaction created and termed");
   });
 
+  // the action responses carry state but not always the chain hashes; the
+  // single-tx endpoint merges the on-chain mirror (escrow/claim), so the card
+  // shows real explorer links the moment a tx lands
+  const refreshTx = async (id: string) => {
+    try {
+      const d = await api<{ tx: Tx }>(`/api/transactions/${id}`);
+      if (d?.tx) setTx(d.tx);
+    } catch { /* card keeps last known state */ }
+  };
+
   const act = (action: string) => run(action, async () => {
     const r = await api<{ tx: Tx }>(`/api/transactions/${tx!.tx_id}/${action}`, {
       method: "POST", body: JSON.stringify({ provider }),
     });
     setTx(r.tx); onDone();
     toast.success(`Transaction ${r.tx.state}`);
+    await refreshTx(tx!.tx_id);
   });
 
   const claim = () => run("claim", async () => {

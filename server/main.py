@@ -124,14 +124,23 @@ def terms_digest(terms: dict) -> str:
     return "0x" + hashlib.sha256(canon.encode()).hexdigest()
 
 
+def _hx(h: str | None) -> str | None:
+    """Canonicalize a chain hash to 0x-prefixed lowercase."""
+    if not h:
+        return None
+    h = h.strip()
+    return h if h.startswith("0x") else "0x" + h
+
+
 def chain_info(tx_dict: dict) -> dict:
     """Attach the real on-chain mirror + explorer links to an engine tx."""
     reg = market["chain"].get(tx_dict.get("tx_id")) or {}
     out = dict(tx_dict)
-    out["chain"] = {"configured": chain_configured(), **reg}
-    if reg.get("escrow"):
-        out["chain_ref"] = reg["escrow"]
-        out["explorer"] = explorer_url(reg["escrow"])
+    norm = {k: _hx(v) for k, v in reg.items() if isinstance(v, str)}
+    out["chain"] = {"configured": chain_configured(), **norm}
+    if norm.get("escrow"):
+        out["chain_ref"] = norm["escrow"]
+        out["explorer"] = explorer_url(norm["escrow"])
     return out
 
 
