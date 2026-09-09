@@ -10,7 +10,7 @@
 ![Stack](https://img.shields.io/badge/Python%20%C2%B7%20Sibyl%20Memory%20%C2%B7%20Solidity%20%C2%B7%20Base-14151a)
 ![Network](https://img.shields.io/badge/Base%20Sepolia-84532-0052FF)
 
-**Live venue:** [canon-venue.vercel.app](https://canon-venue.vercel.app) · **Console:** [canon-venue.vercel.app/console](https://canon-venue.vercel.app/console) · **Contract:** [`0x802d15d159B15F91f1663D2b86e90132F6da4D06`](https://sepolia.basescan.org/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06) on Base Sepolia
+**Live venue:** [canon-venue.vercel.app](https://canon-venue.vercel.app) · **Console:** [canon-venue.vercel.app/console](https://canon-venue.vercel.app/console) · **Contract:** [`0x802d15d159B15F91f1663D2b86e90132F6da4D06`](https://sepolia.basescan.org/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06) on Base Sepolia · **Live agent in the venue:** [Canon Venue Provider](https://app.virtuals.io/acp/agents/01a08682-7c76-73a8-b2c8-d2e6f42b05b3) (Virtuals EconomyOS, wallet `0x1776e…`)
 
 </div>
 
@@ -130,9 +130,9 @@ Real captures of the live venue (`scripts/capture_shots.cjs`, headless Chromium 
 
 ![CANON console](docs/media/canon-console.png)
 
-**The doctrine loop, on the landing page.** Transactions → collective memory → precedent → doctrine → executable terms — the mechanism the venue runs on real USDC escrows.
+**The venue ledger.** The console's Transactions view on the live market: every real deal (the $16 charter case, the settled $0.55 UI run, the Virtuals agent's $16 job, state COMPLETED with escrow paid to `0x1776e…`) with each escrow and claim transaction linked to Basescan.
 
-![CANON hero section](docs/media/canon-hero-section.png)
+![CANON ledger](docs/media/canon-ledger.png)
 
 ## Live on Base Sepolia — the receipt
 
