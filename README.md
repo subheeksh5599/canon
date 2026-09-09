@@ -24,7 +24,7 @@ Built for the **Sibyl Labs Hackathon 2026** — an agent with persistent, load-b
 
 ## The 20-second pitch
 
-Autonomous agents are already hiring, paying, and depending on other agents — on Base, over x402, through ACP. Every one of those transactions starts with **no institutional memory**. A bad experience disappears the moment the session ends, so tomorrow's agent hires the same bad actor with the same naive terms: 100% upfront, no escrow, no recourse.
+Autonomous agents are already hiring, paying, and depending on other agents — on Base, over x402. Every one of those transactions starts with **no institutional memory**. A bad experience disappears the moment the session ends, so tomorrow's agent hires the same bad actor with the same naive terms: 100% upfront, no escrow, no recourse.
 
 CANON is the venue where that stops. Agents transact *inside* CANON; the venue remembers every case. The governing terms come from **doctrine** — stored rules that determine the exact terms of the next deal. The venue is founded under one declared charter rule; doctrine is amended by bonded appeals and refreshed by real resolved cases. The memory doesn't just remember the law. **The law is itself stored as evolving memory.**
 
@@ -250,7 +250,7 @@ The fresh session (step 5 and 7) is a genuinely new `Canon` object over the same
 
 ```
                 ┌─────────────────────┐
-                │  autonomous agents  │   (Virtuals ACP identities, real EOAs)
+                │  autonomous agents  │   (real keyed EOAs; agent identities)
                 └──────────┬──────────┘
                            │ transaction request
                            ▼
@@ -344,6 +344,7 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 | Console + API served live | ✅ REAL — Vercel → venue server on the VPS (systemd), proxied `/api/*` |
 | Contract tested | ✅ REAL — 20-test Foundry battery on the local EVM |
 | Founding history | ✅ REAL — founded by ONE declared charter rule (`created_by_case = "charter"`, zero fabricated cases). Every case on the live market is a real executed transaction; doctrine changes only via appeals, decay, or real-case refresh. Gate scripts use a seeded fixture market for the memory proofs (harness, labeled) |
+| Partner stacks | ✅ Base exercised — deployed CanonMarket + real contract interactions and USDC settlement shown in the demo. ⚠️ Virtuals NOT claimed — no Virtuals-native integration is exercised in the demo (the official multiplier rule: a claimed stack that is not exercised loses the bonus), so the multiplier is ×1.15 unless a real Virtuals element is added |
 | Agent counterparties | ✅ REAL — buyer/provider/judge are real keyed EOAs that appear on-chain in every settlement; claim evidence is TX_VERIFIED chain truth, not script assertions. Job outcomes (delivered/failed) are initiated from the console — the venue consumes evidence-gated outcomes, and full agent autonomy is future work (Limitations) |
 | Settlement wallet | ✅ REAL USDC settlement on Base Sepolia — testnet funds by design; identical contract, code, and math on mainnet (env-only change) |
 | Venue/adjudicator role split | ✅ REAL split wired in code — `ADJUDICATOR_KEY` routes claims/appeals to a separate signer wallet (`0x617B…3046`); the on-chain `setRoles` split executes once that wallet holds gas ETH |
@@ -498,7 +499,7 @@ canon/
 
 ## Limitations
 
-- **One vertical by design**: ACP software/research-agent contracts on the `acp-research` jurisdiction. Multi-jurisdiction doctrine propagation is documented but not built — the memory axis is proven on one spine instead of faked across many.
+- **One vertical by design**: software/research-agent contracts on one jurisdiction (internal label `acp-research`). Multi-jurisdiction doctrine propagation is documented but not built — the memory axis is proven on one spine instead of faked across many.
 - **The ledger is the venue's accounting mirror; the chain is authoritative**: the Python ledger tracks obligations for doctrine/claims logic; every settlement event (escrow lock, milestone release, claim payout, appeal bond/forfeit) executes as a genuine USDC transfer on Base Sepolia, and the console shows the real transaction hashes.
 - **Testnet settlement**: live on Base Sepolia (`0x802d15d159B15F91f1663D2b86e90132F6da4D06`), USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`; venue and adjudicator roles are held by the operator key in the demo and can be split via `setRoles`.
 - **Decay is time-based, not outcome-weighted**: a rule's status ages on a fixed schedule refreshed by supporting cases; per-actor outcome weighting beyond the counterparty file is future work.

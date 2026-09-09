@@ -25,7 +25,7 @@ const NAV: { id: Section; label: string; icon: typeof Activity }[] = [
   { id: "deal", label: "New transaction", icon: Sparkles },
   { id: "transactions", label: "Transactions", icon: ArrowRight },
   { id: "institution", label: "Doctrine · cases · appeals", icon: Scale },
-  { id: "judge", label: "Judge lab", icon: Landmark },
+  { id: "judge", label: "Verification", icon: Landmark },
 ];
 
 export function Sidebar({
@@ -70,24 +70,100 @@ export function Sidebar({
           </button>
         ))}
       </nav>
-      <div className="mt-auto px-2 text-[11px] leading-relaxed text-muted-foreground">
-        {disabled ? (
-          <>
-            <div className="term-mono mb-1 text-[10px] uppercase tracking-widest">
-              start the backend to navigate
-            </div>
-            The engine lives on the machine that runs the venue — this console drives it directly.
-          </>
-        ) : (
-          <>
-            <div className="term-mono mb-1 text-[10px] uppercase tracking-widest">
-              memory is load-bearing
-            </div>
-            Delete Sibyl and the venue cannot construct terms.
-          </>
-        )}
+      <div className="mt-auto space-y-4 px-1">
+        <WalletChip disabled={disabled} />
+        <div className="px-1 text-[11px] leading-relaxed text-muted-foreground">
+          {disabled ? (
+            <>
+              <div className="term-mono mb-1 text-[10px] uppercase tracking-widest">
+                start the backend to navigate
+              </div>
+              The engine lives on the machine that runs the venue — this console drives it directly.
+            </>
+          ) : (
+            <>
+              <div className="term-mono mb-1 text-[10px] uppercase tracking-widest">
+                memory is load-bearing
+              </div>
+              Delete Sibyl and the venue cannot construct terms.
+            </>
+          )}
+        </div>
       </div>
     </aside>
+  );
+}
+
+type EthProvider = {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+  on?: (event: string, cb: (accounts: string[]) => void) => void;
+};
+
+function WalletChip({ disabled }: { disabled?: boolean }) {
+  const [addr, setAddr] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const provider = () =>
+    typeof window !== "undefined"
+      ? (window as unknown as { ethereum?: EthProvider }).ethereum
+      : undefined;
+
+  const connect = async () => {
+    const p = provider();
+    if (!p) {
+      setErr("No injected wallet found (MetaMask, Coinbase, OKX).");
+      return;
+    }
+    try {
+      const res = await p.request({ method: "eth_requestAccounts", params: [] });
+      const accounts = (res ?? []) as string[];
+      const first = (accounts[0] ?? "").toLowerCase();
+      if (first) {
+        setAddr(first);
+        setErr(null);
+        p.on?.("accountsChanged", (as) => setAddr((as[0] ?? "").toLowerCase() || null));
+      }
+    } catch (e) {
+      setErr("Wallet connection rejected.");
+    }
+  };
+
+  return (
+    <div className="border-t border-border pt-4">
+      <div className="term-mono mb-2 px-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+        Wallet
+      </div>
+      {addr ? (
+        <div className="flex items-center justify-between gap-2 px-1">
+          <a
+            href={`https://sepolia.basescan.org/address/${addr}`}
+            target="_blank"
+            rel="noreferrer"
+            className="term-mono truncate text-[11px] text-[#5fc9a8] underline decoration-[#5fc9a8]/40 underline-offset-2"
+            title="Open on Basescan"
+          >
+            {addr.slice(0, 6)}…{addr.slice(-4)}
+          </a>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block size-1.5 rounded-full bg-[#5fc9a8]" />
+            <span className="term-mono text-[10px] text-muted-foreground">84532</span>
+          </span>
+        </div>
+      ) : (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={connect}
+          className={`data flex w-full items-center justify-center gap-2 rounded-sm border border-border px-3 py-1.5 text-[11px] transition-colors ${
+            disabled
+              ? "cursor-not-allowed opacity-45"
+              : "text-muted-foreground hover:border-[#5fc9a8] hover:text-[#5fc9a8]"
+          }`}
+        >
+          Connect wallet
+        </button>
+      )}
+      {err && !addr && <div className="mt-1.5 px-1 text-[10px] text-[#e06a5e]">{err}</div>}
+    </div>
   );
 }
 
@@ -391,7 +467,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
               <span>doctrine v{claimRes.doctrine_version_after}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Five confirmed failures in this job class will amend the doctrine — then open the Judge lab
+              Five confirmed failures in this job class will amend the doctrine — then run the verification proofs
               and run the fresh-session proof to see a different deal for the same request.
             </p>
           </CardContent>

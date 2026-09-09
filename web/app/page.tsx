@@ -90,7 +90,7 @@ export default function Home() {
         </p>
         <div className="mt-10 flex flex-wrap items-center gap-3">
           <Link href="/console" className="btn-mint data px-5 py-2.5 text-sm">
-            Run the judge lab
+            Open the console
           </Link>
           <Link href="#fig-02" className="btn-ghost data px-5 py-2.5 text-sm text-[#e9ecf3]">
             See the mechanism
@@ -216,8 +216,8 @@ export default function Home() {
               The venue stops.
             </p>
             <p className="mt-3 max-w-md text-[15px] text-[#8b94a7]">
-              That is the design, not a failure mode. The claim is testable — the judge lab runs the
-              deletion proof live.
+              That is the design, not a failure mode. The claim is testable — the verification console runs
+              the deletion proof against the live engine.
             </p>
           </div>
           <Link href="/console" className="btn-mint data shrink-0 px-6 py-3 text-sm">

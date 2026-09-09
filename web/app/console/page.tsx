@@ -57,9 +57,8 @@ function ConnectGate() {
               <div className="flex items-start gap-3">
                 <TerminalSquare className="mt-0.5 size-4 shrink-0" />
                 <div className="text-sm text-muted-foreground">
-                  Then run the judge lab: <span className="text-foreground">cold-start proof, deletion
-                  test, ablation</span> — each button executes the real engine and prints its live
-                  result. Full walkthrough in the repo README.
+                  Verification proofs: <span className="text-foreground">cold-start recall, deletion
+                  test, ablation</span> — each proof executes the real engine and prints its live result. Full walkthrough in the repo README.
                 </div>
               </div>
             </div>

@@ -52,3 +52,9 @@ deployments.local/
 
 # Foundry dependency (reinstall with: cd contracts && forge install foundry-rs/forge-std)
 contracts/lib/
+
+# local working docs — never commit
+/SUBMISSION_CHECKLIST.md
+/DEMO_SCRIPT.md
+/POSTS.md
+/FEEDBACK_TEMPLATE.md

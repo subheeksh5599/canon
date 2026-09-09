@@ -271,7 +271,7 @@ function ProofCard({ title, note, run, kind }: { title: string; note: string; ru
 export function JudgeLab({ bump }: { bump: number }) {
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-semibold tracking-[-0.03em]">Judge lab</h1>
+      <h1 className="text-2xl font-semibold tracking-[-0.03em]">Verification proofs</h1>
       <p className="text-sm text-muted-foreground">
         Every button runs the real engine against real Sibyl memory. No canned output, no precomputed
         strings.
