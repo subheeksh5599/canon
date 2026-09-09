@@ -20,7 +20,6 @@ The venue opens under **one declared charter rule** (25% upfront cap · 3 milest
 
 **CANON does not use memory as a transcript or context store. CANON's economic terms are generated from doctrine stored in Sibyl — a charter founded once, amended by appeals, refreshed by real evidence. Remove Sibyl, and CANON loses the admission records and active doctrine required to construct authoritative transaction terms.**
 
-Built for the **Sibyl Labs Hackathon 2026** — an agent with persistent, load-bearing memory.
 
 ## The 20-second pitch
 
@@ -514,7 +513,7 @@ canon/
 - **Decay is time-based, not outcome-weighted**: a rule's status ages on a fixed schedule refreshed by supporting cases; per-actor outcome weighting beyond the counterparty file is future work.
 - **Proven at evaluation time**: terms are generated from the doctrine current when the transaction is evaluated; a funded transaction's terms are immutable (asserted by `test_t016`), so mid-job doctrine changes never rewrite a live deal.
 
-Built for the **Sibyl Labs Hackathon 2026**. MIT licensed.
+MIT licensed.
 
 ## License
 
