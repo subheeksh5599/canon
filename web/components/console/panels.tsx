@@ -338,6 +338,18 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [claimRes, setClaimRes] = useState<any>(null);
   const [evidence, setEvidence] = useState("TX_VERIFIED");
+  const [openDeal, setOpenDeal] = useState<Tx | null>(null);
+
+  // if a deal is still actionable (TERMED/FUNDED/FAILED), offer to resume it
+  // instead of silently replacing the form or forcing a re-create
+  const findOpen = async () => {
+    try {
+      const r = await api<{ transactions: Tx[] }>("/api/transactions");
+      const open = (r.transactions || []).find((t) => ["TERMED", "FUNDED", "FAILED"].includes(t.state)) || null;
+      setOpenDeal(open);
+    } catch { /* keep current */ }
+  };
+  useEffect(() => { findOpen(); }, []);
 
   const run = async (action: string, fn: () => Promise<void>) => {
     setBusy(action);
@@ -358,6 +370,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
     });
     setTx(r.tx); setTerms(r.tx.terms); onDone();
     toast.success("Transaction created and termed");
+    findOpen();
   });
 
   // the action responses carry state but not always the chain hashes; the
@@ -377,6 +390,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
     setTx(r.tx); onDone();
     toast.success(`Transaction ${r.tx.state}`);
     await refreshTx(tx!.tx_id);
+    findOpen();
   });
 
   const claim = () => run("claim", async () => {
@@ -385,7 +399,14 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
     });
     setClaimRes(r.result); onDone();
     toast.success(`Claim resolved — signal ${r.result.signal}, doctrine ${r.result.doctrine_version_after}`);
+    findOpen();
   });
+
+  const resume = () => {
+    if (!openDeal) return;
+    setTx(openDeal); setTerms(openDeal.terms); setProvider(openDeal.provider);
+    setOpenDeal(null);
+  };
 
   const canFund = tx && tx.state === "TERMED";
   const canFinish = tx && (tx.state === "FUNDED");
@@ -443,6 +464,18 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
       </Card>
 
       {terms && <TermsCard terms={terms} />}
+
+      {openDeal && !tx && (
+        <Card className="border-[rgba(224,106,94,0.35)] bg-[rgba(224,106,94,0.05)]">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+            <div>
+              <div className="font-medium">Open deal left mid-flight: {short(openDeal.tx_id, 18)} · {openDeal.state}</div>
+              <div className="text-xs text-muted-foreground">Switch back to Transactions any time — it is waiting there. Continue here instead of creating a new one.</div>
+            </div>
+            <Button onClick={resume} disabled={busy !== null}>Continue deal</Button>
+          </CardContent>
+        </Card>
+      )}
 
       {tx && (
         <Card className="border-border">
