@@ -121,8 +121,38 @@ class AppealService:
 
     def _amend_doctrine(self, appeal: Appeal) -> str:
         """A successful appeal amends the challenged rule: doctrine vN -> vN+1
-        (A-008/A-009/A-014/A-015)."""
+        (A-008/A-009/A-014/A-015).
+
+        Oscillation guard: if CANON_AMENDMENT_COOLDOWN_HOURS is set (the live
+        venue runs with it on), the same rule cannot be amended again inside
+        that window. Two parties cannot ping-pong the doctrine by alternating
+        appeals; rejected appeals are unaffected.
+        """
+        import os
+        cooldown_h = float(os.environ.get("CANON_AMENDMENT_COOLDOWN_HOURS", "0") or 0)
         doc = self._doctrine.current_doctrine()
+        if cooldown_h > 0 and doc.amended_by_appeal:
+            # the doctrine itself records the last accepted amendment; the
+            # appeal entity carries its timestamp. Inside the window, refuse.
+            last = self._seam.get_entity(CAT_APPEAL, doc.amended_by_appeal) or {}
+            stamp = last.get("resolved_at") or ""
+            from datetime import datetime, timezone
+            try:
+                eff = datetime.fromisoformat(stamp)
+                if eff.tzinfo is None:
+                    eff = eff.replace(tzinfo=timezone.utc)
+                now = datetime.fromisoformat(self.clock.iso())
+                if now.tzinfo is None:
+                    now = now.replace(tzinfo=timezone.utc)
+                age_h = (now - eff).total_seconds() / 3600.0
+                if age_h < cooldown_h:
+                    raise ConflictError(
+                        f"doctrine was amended {age_h:.1f}h ago (appeal "
+                        f"{doc.amended_by_appeal}); amendment cooldown is {cooldown_h}h")
+            except ConflictError:
+                raise
+            except Exception:
+                pass  # unparseable timestamp must not block a legitimate appeal
         new_rules = []
         amended_id = None
         for r in doc.rules:

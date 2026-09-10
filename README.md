@@ -53,6 +53,7 @@ The loop is the product: **transactions → collective memory → precedent → 
 - [Security model — what CANON refuses to trust](#security-model--what-canon-refuses-to-trust)
 - [Engineering decisions & the hard problems](#engineering-decisions--the-hard-problems)
 - [What's real vs stubbed — the honesty table](#whats-real-vs-stubbed--the-honesty-table)
+- [Attack → test](#attack--test-what-a-hostile-judge-asks-and-what-answers-it)
 - [Tests](#tests)
 - [Run it yourself](#run-it-yourself)
 - [Run the venue UI](#run-the-venue-ui-landing--console)
@@ -383,6 +384,28 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 | Venue/adjudicator role split | ✅ REAL — split EXECUTED on-chain (`setRoles`, adjudicator `0x617B…3046`); claims and appeal resolutions in the receipt above are signed by the adjudicator wallet |
 | Bond custody after completion | ⚠️ DISCLOSED — `markCompleted` leaves the deal bond in the contract; the deployed CanonMarket has no venue withdrawal function (only `cancel`, which refunds buyer-side escrow). Completed-deal bonds (~$2.4 testnet) stay locked until a contract version adds withdrawal. Escrow and payouts are unaffected |
 | Contract source verification on Basescan | ✅ REAL — Sourcify [`exact_match`](https://sourcify.dev/#/lookup/0x802d15d159B15F91f1663D2b86e90132F6da4D06) (creation + runtime) and Blockscout [`Pass - Verified`](https://base-sepolia.blockscout.com/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06#code) |
+
+## Attack → test (what a hostile judge asks, and what answers it)
+
+Run everything at once: `.venv/bin/python scripts/adversarial_gate.py` (separate OS processes, one Sibyl file — prints PASS/FAIL per check).
+
+| Attack | Answer | Test |
+|---|---|---|
+| "Memory is decorative — just cache the score" | terms cannot be generated without a doctrine read; memory unavailable raises instead of defaulting | `test_evaluation_fails_closed_when_memory_is_unavailable` |
+| "Fake deletion — something cached survived" | deletion wipes every tier; a FRESH process is refused | `test_g003_deletion_breaks_evaluation`, `test_g004_deletion_no_doctrine`, `test_m020_deletion_wipes_every_tier` |
+| "Cold start isn't cold" | two processes, one Sibyl file, deterministic recall; real restart covered | `test_g009_cold_start_deterministic`, `test_g010_cold_start_real_restart`, `scripts/fresh_session.py` |
+| "Doctrine is hardcoded logic" | doctrine is stored state; v1 only after 5 confirmed cases; appeals produce v2 | `test_d024_winning_appeal_amends`, `test_d019_rule_decays_without_support` |
+| "Poison the memory with a claim" | TEXT-tier claims are inert; only RESOLVED HIGH/MEDIUM evidence seeds doctrine | `test_s001_poisoning_inert` |
+| "Sybil a history into existence" | every case needs a real registered transaction + the buyer has standing to file; one claim per tx; statute window | `test_e014_asymmetric_standing`, `test_c001_only_failed_claimable` |
+| "Replay a settlement" | payout nonce/state machine refuses reuse | `test_c015_replay_payout_nonce`, `test_t012_replay_same_signed_accept` |
+| "Rules changed between quote and settlement" | terms are immutable after funding and the digest is bound to the tx | `test_t016_terms_immutable_after_fund`, `test_terms_digest_is_stored_on_the_transaction` |
+| "Ping-pong the doctrine with appeals" | amendment cooldown (live venue runs 24h) + appeal flood control + bond floor | `test_appeal_oscillation_guard_blocks_second_amendment`, `test_appeal_cooldown_disabled_by_default` |
+| "Freeze/unfreeze to dodge a rule" | an open appeal freezes the rule; superseded rules can't be appealed; lost appeals don't mutate doctrine | `test_a005_open_appeal_freezes_rule`, `test_a010_superseded_rule_cannot_be_appealed`, `test_a018_lost_appeal_no_mutation` |
+| "Appeal history got rewritten" | pre-appeal versions stay intact; restarts mid-appeal resume | `test_a015_pre_appeal_version_intact`, `test_a019_restart_mid_appeal_resumes` |
+| "Memory outage silently degrades to trust" | fail-closed: no memory → no authoritative terms (zero-trust) | `test_evaluation_fails_closed_when_memory_is_unavailable`, gate script check 3 |
+| "Unfunded deals can be abandoned safely" | TERMED-only cancel, no money moves, funded deals refused | `tests/test_cancel.py` (4 tests) |
+
+Two disclosed limitations, stated rather than hidden: appeal *decisions* are signed by the operator-held adjudicator key in this deployment (bond, flood control, freeze and cooldown are enforced in code — the accept/reject judgment is a key, not a quorum); and completed-deal bonds stay locked in the contract (no venue withdrawal function in the deployed version).
 
 ## Tests
 

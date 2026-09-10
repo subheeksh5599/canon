@@ -87,7 +87,8 @@ class Venue:
     # ---------------------------------------------------------- transactions
     def create_transaction(self, *, buyer: str, provider: str, job_type: str,
                            job_value_usd: float, jurisdiction: str = Jurisdiction.ACP_RESEARCH.value,
-                           terms=None, tx_id: Optional[str] = None) -> Transaction:
+                           terms=None, tx_id: Optional[str] = None,
+                           terms_digest: Optional[str] = None) -> Transaction:
         self._require_active(buyer)
         self._require_active(provider)
         Jurisdiction.validate(jurisdiction)
@@ -107,6 +108,10 @@ class Venue:
         if terms is not None:
             tx.terms = terms
             tx.state = TxState.TERMED
+        if terms_digest:
+            # the exact digest of the doctrine-generated terms that the venue
+            # registers on-chain — a judge can recompute it and compare
+            tx.terms_snapshot_hash = terms_digest
         self._seam.set_hot(f"tx:{tx.tx_id}", tx.to_dict())
         self._seam.write_event(
             evaluated={"tx_id": tx.tx_id, "buyer": buyer, "provider": provider,

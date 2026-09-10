@@ -111,11 +111,12 @@ class Canon:
 
     def create_tx(self, *, buyer: str, provider: str, job_type: str, job_value_usd: float,
                   terms: Optional[Terms] = None, tx_id: Optional[str] = None,
-                  jurisdiction: str = "acp-research") -> Transaction:
+                  jurisdiction: str = "acp-research",
+                  terms_digest: Optional[str] = None) -> Transaction:
         return self.venue.create_transaction(
             buyer=buyer, provider=provider, job_type=job_type,
             job_value_usd=job_value_usd, terms=terms, tx_id=tx_id,
-            jurisdiction=jurisdiction,
+            jurisdiction=jurisdiction, terms_digest=terms_digest,
         )
 
     def execute(self, tx_id: str, *, chain_ref: str) -> Transaction:

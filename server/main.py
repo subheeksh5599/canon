@@ -248,7 +248,8 @@ def create_tx(body: TxIn):
         t = c.evaluate(buyer=BUYER, provider=body.provider, job_type=body.job_type,
                        job_value_usd=body.job_value_usd)
         tx = c.create_tx(buyer=BUYER, provider=body.provider, job_type=body.job_type,
-                         job_value_usd=body.job_value_usd, terms=t)
+                         job_value_usd=body.job_value_usd, terms=t,
+                         terms_digest=terms_digest(t.to_dict()))
         # real on-chain registration under the doctrine terms digest
         ch = chain_ctx()
         cid, hash_ = ch.create_tx(

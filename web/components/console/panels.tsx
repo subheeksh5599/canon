@@ -491,6 +491,11 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
             <CardTitle className="flex items-center gap-2 text-base">
               <FileText className="size-4 text-[#5fc9a8]" /> {short(tx.tx_id, 16)}
               <Badge className="rounded-full">{tx.state}</Badge>
+              {tx.terms_snapshot_hash && (
+                <span className="term-mono text-[10px] text-muted-foreground" title="SHA-256 digest of the doctrine-generated terms, registered on-chain">
+                  terms {short(tx.terms_snapshot_hash, 10)}
+                </span>
+              )}
               <TxLink hash={tx.chain_ref} />
               {tx.chain?.claim && tx.chain.claim !== tx.chain_ref && <TxLink hash={tx.chain.claim} label="claim" />}
             </CardTitle>
