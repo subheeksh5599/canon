@@ -110,6 +110,14 @@ $ curl -s https://canon-venue.vercel.app/api/status | jq '{doctrine_version, cas
 }
 ```
 
+## ▶ Demo
+
+<video src="docs/media/canon-demo.mp4" poster="docs/media/canon-demo-poster.png" controls width="100%"></video>
+
+**[▶ Watch the demo (MP4, 2:24)](docs/media/canon-demo.mp4)** &nbsp;·&nbsp; **[ Live venue ↗ ](https://canon-venue.vercel.app)** &nbsp;·&nbsp; **[ Console ↗ ](https://canon-venue.vercel.app/console)**
+
+_The real venue driven live, screen-recorded in one take — no animation, no mock._ A $16 deal is quoted from doctrine stored in memory, escrow locks in real USDC on Base Sepolia (the Basescan hash is opened on screen and the amount read off the explorer), the deletion gate is run from the console and the venue **refuses to rule** once the memory is gone, an accepted bonded appeal moves doctrine v1 → v2 for the whole venue, and the registered Virtuals agent's settlement is opened on-chain. Every hash in the recording is reproducible with `scripts/verify_receipts.py`.
+
 ## Screenshots
 
 Real captures of the live venue (`scripts/capture_shots.cjs`, headless Chromium at 1440×900 — no image is doctored or mocked; each page below is the deployed site talking to the real engine).
