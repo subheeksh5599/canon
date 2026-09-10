@@ -33,6 +33,12 @@ TXS = {
     "agent deal register": "0x3b3020d64fc1cc2199d02e499067d906b6b1236e1a042d615b79b5784c3bff71",
     "agent deal escrow": "0x28dd0366e1e67e231eb1926078f75309fde63fea6102c7c5f922297e176474d1",
     "agent deal payout ($9.60 -> agent)": "0x292c599db990f78c038091667a0528888fdda1683be4e603374326fac5323690",
+    "virtuals delivery run register": "0x3313ab467febe3a3d13b9a8e43168b7f9e5373f1c57e378568ba00ac1a91ef81",
+    "virtuals delivery run escrow": "0x3ac590b0e0422e452c8005f28a9d6cb929abf35a62c0b256c291e2b7cc2e1758",
+    "virtuals delivery run payout": "0xf428933a83ec8ce17177ece0e0bd390cd8f9ddc1c48027a50068f30f9f910dcd",
+    "second agent deal register": "0x1841dbc0845b2f0e7c5fd6041abed8980cdf7ee5d53a4699784250f2618c0259",
+    "second agent deal escrow": "0xfef10cf6d997ea087e9623014f65f4dca1516023607392a3a7428b39974e6aa8",
+    "second agent deal payout": "0x8ec4e81ddb12399251c99b2fda6f425bce824c68e3d444abaaaa74dd1c9ef9a6",
 }
 
 

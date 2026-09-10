@@ -214,6 +214,8 @@ The registered Virtuals agent produced the work itself. On a real $3 venue job u
 
 All three receipts verified `status = 0x1`. Agent wallet 9.66 → **11.46** USDC. The generation id and response are stored with the job (`/api/virtuals/deliver/{tx_id}`), so the settlement is tied to work the agent actually produced on the Virtuals stack.
 
+A second, larger delivery ran the same way — a **$16 job** whose deliverable came from another real Virtuals completion (`generation gen-1789021696-i3vxGQdqtsCcBgYSTasb`, cost $0.000108): register [`0x1841dbc0…0259`](https://sepolia.basescan.org/tx/0x1841dbc0845b2f0e7c5fd6041abed8980cdf7ee5d53a4699784250f2618c0259), escrow [`0xfef10cf6…6aa8`](https://sepolia.basescan.org/tx/0xfef10cf6d997ea087e9623014f65f4dca1516023607392a3a7428b39974e6aa8), payout [`0x8ec4e81d…f9a6`](https://sepolia.basescan.org/tx/0x8ec4e81ddb12399251c99b2fda6f425bce824c68e3d444abaaaa74dd1c9ef9a6) — all `status = 0x1`. **Agent wallet balance is now 21.06 USDC**, earned entirely from jobs it delivered inside the venue.
+
 Deployment facts: CanonMarket `0x802d15d159B15F91f1663D2b86e90132F6da4D06`, deployed from `0x087ef173fb6F253DabFa89fA3a7756C5E8b1A1dA` (chain 84532, USDC token `0x036CbD53842c5426634e7929541eC2318f3dCF7E`). Roles are SPLIT on-chain: venue `0x087e…`, adjudicator `0x617B…` (setRoles tx above); claims and appeal resolutions are signed by the adjudicator wallet.
 
 ## What CANON is NOT
@@ -426,14 +428,14 @@ Disclosed limitations, stated rather than hidden: the anti-Sybil distinct-counte
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest tests/ -q          # 175 passing (engine + gate + adversarial)
+.venv/bin/python -m pytest tests/ -q          # 189 passing (engine + gate + adversarial + defenses)
 cd contracts && forge test                     # 20 passing (CanonMarket, USDC-denominated)
 ```
 
 Real output, last full run:
 
 ```text
-175 passed in 66.28s (0:01:06)
+189 passed in 72.54s (0:01:12)
 Suite result: ok. 20 passed; 0 failed; 0 skipped
 ```
 

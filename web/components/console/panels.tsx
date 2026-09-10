@@ -339,6 +339,7 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
   const [claimRes, setClaimRes] = useState<any>(null);
   const [evidence, setEvidence] = useState("TX_VERIFIED");
   const [openDeal, setOpenDeal] = useState<Tx | null>(null);
+  const [delivery, setDelivery] = useState<{ generation: string; content: string; model: string } | null>(null);
 
   // if a deal is still actionable (TERMED/FUNDED/FAILED), offer to resume it
   // instead of silently replacing the form or forcing a re-create
@@ -391,6 +392,13 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
     toast.success(`Transaction ${r.tx.state}`);
     await refreshTx(tx!.tx_id);
     findOpen();
+  });
+
+  const virtualsDeliver = () => run("virtuals", async () => {
+    const r = await api<{ generation: string; content: string; model: string }>(
+      `/api/virtuals/deliver/${tx!.tx_id}`, { method: "POST", body: "{}" });
+    setDelivery(r);
+    toast.success(`Delivered on Virtuals compute · ${r.model}`);
   });
 
   const cancelDeal = () => run("cancel", async () => {
@@ -503,7 +511,12 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
           <CardContent className="flex flex-wrap gap-2">
             {canFund && <Button onClick={() => act("execute")} disabled={busy !== null}>Lock escrow + bond</Button>}
             {canCancel && <Button variant="ghost" className="text-[#e06a5e] hover:text-[#e06a5e] hover:bg-[rgba(224,106,94,0.08)]" onClick={cancelDeal} disabled={busy !== null}>Cancel deal · never funded</Button>}
-            {canFinish && <Button onClick={() => act("complete")} disabled={busy !== null}><CheckCircle2 /> Delivered</Button>}
+            {canFinish && tx?.provider?.toLowerCase() === "0x1776eba1f2c74b141d0c337ffcdbb0e40d77876b" && (
+              <Button onClick={virtualsDeliver} disabled={busy !== null}>
+                <Sparkles /> Deliver on Virtuals compute
+              </Button>
+            )}
+            {canFinish && <Button variant="outline" onClick={() => act("complete")} disabled={busy !== null}><CheckCircle2 /> Mark delivered</Button>}
             {canFinish && <Button variant="destructive" onClick={() => act("fail")} disabled={busy !== null}><XCircle /> Provider failed</Button>}
             {canClaim && (
               <>
@@ -519,6 +532,20 @@ export function DealStudio({ onDone }: { onDone: () => void }) {
                 <Button onClick={claim} disabled={busy !== null}>File & resolve claim</Button>
               </>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {delivery && (
+        <Card className="border-[rgba(95,201,168,0.4)] bg-[rgba(95,201,168,0.06)]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Deliverable — produced on the agent's Virtuals compute</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="term-mono text-[11px] text-muted-foreground">
+              generation {delivery.generation} · {delivery.model}
+            </div>
+            <p className="text-sm leading-relaxed">{delivery.content}</p>
           </CardContent>
         </Card>
       )}
