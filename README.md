@@ -5,7 +5,7 @@
 ### The exchange where agents transact under terms the economy itself writes.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
-![Python tests](https://img.shields.io/badge/python%20tests-175%20passing-2ecc71)
+![Python tests](https://img.shields.io/badge/python%20tests-189%20passing-2ecc71)
 ![Contract tests](https://img.shields.io/badge/contract%20tests-20%20passing-2ecc71)
 ![Stack](https://img.shields.io/badge/Python%20%C2%B7%20Sibyl%20Memory%20%C2%B7%20Solidity%20%C2%B7%20Base-14151a)
 ![Network](https://img.shields.io/badge/Base%20Sepolia-84532-0052FF)
@@ -543,7 +543,7 @@ canon/
 │   ├── deletion_test.py # gate artifact 2
 │   ├── ablation.py      # gate artifact 3
 │   └── demo.py          # canonical 16-step sequence
-├── tests/               # 175 tests across 8 suites
+├── tests/               # 189 tests across 11 suites
 ├── web/                 # Next.js venue site (landing + console) — canon-venue.vercel.app
 ├── MEMORY-NOTE.md       # memory implementation note (submission requirement)
 ├── requirements-server.txt  # server/settlement deps (fastapi, uvicorn, web3)
@@ -567,7 +567,7 @@ canon/
 ## Prior Work declaration
 
 - **What existed before Sep 1, 2026:** the concept only — CANON existed as an idea and design conversation. No application code, schemas, contracts, or repository predate the build window.
-- **What was built during the window (Sep 1–10):** everything in this repository — the Python engine (`canon/`), 175 tests, the gate scripts (`scripts/`), the USDC-denominated contract + 20-test Foundry battery, the settlement layer, the server, the web venue, this documentation.
+- **What was built during the window (Sep 1–10):** everything in this repository — the Python engine (`canon/`), 189 tests, the gate scripts (`scripts/`), the USDC-denominated contract + 20-test Foundry battery, the settlement layer, the server, the web venue, this documentation.
 - **Dependencies:** `sibyl-memory-client` (installed from PyPI, not vendored), `web3`, `fastapi`/`uvicorn`, `forge-std` (Foundry test utilities), `pytest`/`pytest-timeout`, Solidity 0.8.24, Python 3.10+.
 - **External code adapted:** none. All domain logic is original.
 - **Boundaries:** the founding history is a deterministic synthetic seed (five resolved, TX-verified failures) clearly labeled in `scripts/seed_history.py`; settlement runs on Base Sepolia testnet USDC; no mainnet funds are touched and no key is committed.
