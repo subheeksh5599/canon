@@ -101,6 +101,7 @@ def fresh_market() -> Canon:
     market["canon"] = canon
     market["txids"] = _load_state(canon, "txids", [])
     market["chain"] = _load_state(canon, "chainmap", {}) or {}
+    market["deliveries"] = _load_state(canon, "deliveries", {}) or {}
     return canon
 
 
@@ -366,6 +367,40 @@ def cancel(tx_id: str):
         _persist(c)
         return ok(tx=chain_info(tx.to_dict()), cancel_tx_hash=chain_hash)
     except CanonError as e:
+        return err(e)
+
+
+@app.post("/api/virtuals/deliver/{tx_id}")
+def virtuals_deliver(tx_id: str):
+    """The counterparty agent produces its deliverable on its own Virtuals-hosted
+    compute; the venue records the real generation id with the job. This is the
+    Virtuals-native action the settlement is tied to."""
+    c = get_canon()
+    try:
+        tx = c.venue.require_tx(tx_id)
+        if tx.provider.lower() != PROVIDER_VIRTUAL.lower():
+            raise ValidationError("this job's provider is not the Virtuals agent")
+        from canon.virtuals import generate, configured as vc_configured, VirtualsComputeError
+        if not vc_configured():
+            raise ChainError("VIRTUALS_API_KEY not configured on the venue server")
+        prompt = (f"You are Canon Venue Provider, a registered Virtuals EconomyOS agent "
+                  f"delivering a research job inside the CANON venue. Job class: {tx.job_type}. "
+                  f"Job value ${tx.job_value_usd}. Return a precise 3-sentence research finding "
+                  f"about counterparty-settlement risk, then the exact token CANON-DELIVERY-OK.")
+        try:
+            out = generate(prompt)
+        except VirtualsComputeError as e:
+            raise ChainError(f"virtuals compute failed: {e}")
+        market.setdefault("deliveries", {})[tx_id] = {
+            "generation_id": out["generation_id"], "model": out["model"],
+            "content": out["content"][:2000], "usage": out.get("usage") or {},
+        }
+        _save_state(c, "deliveries", market["deliveries"])
+        return ok(tx_id=tx_id, generation=out["generation_id"], model=out["model"],
+                  content=out["content"], usage=out.get("usage") or {})
+    except CanonError as e:
+        return err(e)
+    except ChainError as e:
         return err(e)
 
 
