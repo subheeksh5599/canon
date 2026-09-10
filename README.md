@@ -112,11 +112,11 @@ $ curl -s https://canon-venue.vercel.app/api/status | jq '{doctrine_version, cas
 
 ## ▶ Demo
 
-[![▶ Watch the demo — 2:24, real screen capture](docs/media/canon-demo-poster.png)](docs/media/canon-demo.mp4)
+[![▶ Watch the demo — 2:24, real screen capture of the live venue](docs/media/canon-demo-poster.png)](https://subheeksh5599.github.io/canon/media/canon-demo.mp4)
 
-**[▶ Watch the demo (MP4, 2:24)](docs/media/canon-demo.mp4)** &nbsp;·&nbsp; **[ Live venue ↗ ](https://canon-venue.vercel.app)** &nbsp;·&nbsp; **[ Console ↗ ](https://canon-venue.vercel.app/console)**
+**[▶ Watch the demo (2:24)](https://subheeksh5599.github.io/canon/media/canon-demo.mp4)** &nbsp;·&nbsp; **[ Live venue ↗ ](https://canon-venue.vercel.app)** &nbsp;·&nbsp; **[ Console ↗ ](https://canon-venue.vercel.app/console)** &nbsp;·&nbsp; **[ Repo copy ↗ ](docs/media/canon-demo.mp4)**
 
-_Click the frame above, or the link, to play it in the browser. The real venue driven live in one take — no animation, no mock._ A $16 deal is quoted from doctrine stored in memory, escrow locks in real USDC on Base Sepolia (the Basescan hash is opened on screen and the amount read off the explorer), the deletion gate is run from the console and the venue **refuses to rule** once the memory is gone, an accepted bonded appeal moves doctrine v1 → v2 for the whole venue, and the registered Virtuals agent's settlement is opened on-chain. Every hash in the recording is reproducible with `scripts/verify_receipts.py`.
+_Click the frame to play it in the browser. The real venue driven live in one take — no animation, no mock, nothing staged._ A $16 deal is quoted from doctrine stored in memory, escrow locks in real USDC on Base Sepolia (the Basescan hash is opened on screen and the amount read off the explorer), the deletion gate is run from the console and the venue **refuses to rule** once the memory is gone, an accepted bonded appeal moves doctrine v1 → v2 for the whole venue, and the registered Virtuals agent's settlement is opened on-chain. Every hash in the recording reproduces with `scripts/verify_receipts.py`.
 
 ## Screenshots
 
