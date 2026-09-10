@@ -275,7 +275,9 @@ Every memory read/write flows through one seam: `canon/memory.py` — the only m
 | **WARM** | entities | agents/admissions, counterparty files, cases, claims, appeals | `canon/cases.py`, `canon/venue.py` |
 | **COLD** | `write_event` journal | append-only chain-hashed ledger of every decision | `canon/memory.py::write_event` |
 | **REFERENCE** | `set_reference` | **the doctrine** (versioned, checksummed) + pool ledger + chain head | `canon/doctrine.py` |
-| **ARCHIVE** | `archive_entity` | superseded doctrine, resolved appeals | `canon/appeals.py` |
+| **ARCHIVE** | `archive_entity` | *declared on the seam, not exercised* — superseded rules are retained in the doctrine payload with `status=SUPERSEDED` instead (A-015 asserts the pre-appeal version stays byte-identical) | `canon/appeals.py` (status supersession) |
+
+Honest scope on the seam: `search_entities` (semantic search) and `archive_entity` exist on the memory seam but are **not called** anywhere in CANON — every recall below is by exact key or category listing, never by similarity. That is a deliberate choice (deterministic terms must not depend on a similarity ranking), and it is stated here so the primitive list is auditable.
 
 Critical-path calls a judge can find in two minutes:
 
