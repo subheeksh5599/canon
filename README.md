@@ -197,7 +197,7 @@ The agent ["Canon Venue Provider"](https://app.virtuals.io/acp/agents/01a08682-7
 | **Escrow lock** $9.60 + $1.60 bond (venue signs, CCP) | | [`0x28dd0366…74d1`](https://sepolia.basescan.org/tx/0x28dd0366e1e67e231eb1926078f75309fde63fea6102c7c5f922297e176474d1) |
 | **Agent delivered — escrow paid to the agent's wallet** | | [`0x292c599d…3690`](https://sepolia.basescan.org/tx/0x292c599db990f78c038091667a0528888fdda1683be4e603374326fac5323690) |
 
-All three receipts verified `status = 0x1` via RPC. Post-run state read on-chain: agent wallet USDC 0 → **9.60**, venue 20.41 → 9.21, contract holds 1.60 (the bond, returned to the venue when the deal's appeal window closes). Ledger state: `COMPLETED`, every hash explorer-linked in the console.
+All three receipts verified `status = 0x1` via RPC. Post-run state read on-chain: agent wallet USDC 0 → **9.60**, venue 20.41 → 9.21, contract holds 1.60 (the deal bond — see Limitations: the deployed contract has no venue withdrawal path, so completed-deal bonds stay locked until the next contract version). Ledger state: `COMPLETED`, every hash explorer-linked in the console.
 
 Deployment facts: CanonMarket `0x802d15d159B15F91f1663D2b86e90132F6da4D06`, deployed from `0x087ef173fb6F253DabFa89fA3a7756C5E8b1A1dA` (chain 84532, USDC token `0x036CbD53842c5426634e7929541eC2318f3dCF7E`). Roles are SPLIT on-chain: venue `0x087e…`, adjudicator `0x617B…` (setRoles tx above); claims and appeal resolutions are signed by the adjudicator wallet.
 
@@ -381,6 +381,7 @@ API surface (all real, live at `https://canon-venue.vercel.app/api`):
 | Virtuals partner stack | ✅ EXERCISED — a real agent registered on Virtuals EconomyOS ("Canon Venue Provider", `01a08682-…`, wallet `0x1776e…`) is admitted into the venue as counterparty Prov-03 and **received a $9.60 USDC escrow payout** for a delivered job (third-run receipt above). ⚠️ its Virtuals compute endpoint returns 402 insufficient credits ($0 balance, DevRel approval pending) — the agent's inference isn't claimed |
 | Settlement wallet | ✅ REAL USDC settlement on Base Sepolia — testnet funds by design; identical contract, code, and math on mainnet (env-only change) |
 | Venue/adjudicator role split | ✅ REAL — split EXECUTED on-chain (`setRoles`, adjudicator `0x617B…3046`); claims and appeal resolutions in the receipt above are signed by the adjudicator wallet |
+| Bond custody after completion | ⚠️ DISCLOSED — `markCompleted` leaves the deal bond in the contract; the deployed CanonMarket has no venue withdrawal function (only `cancel`, which refunds buyer-side escrow). Completed-deal bonds (~$2.4 testnet) stay locked until a contract version adds withdrawal. Escrow and payouts are unaffected |
 | Contract source verification on Basescan | ✅ REAL — Sourcify [`exact_match`](https://sourcify.dev/#/lookup/0x802d15d159B15F91f1663D2b86e90132F6da4D06) (creation + runtime) and Blockscout [`Pass - Verified`](https://base-sepolia.blockscout.com/address/0x802d15d159B15F91f1663D2b86e90132F6da4D06#code) |
 
 ## Tests
