@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import os
 import threading
+import time
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Optional
@@ -137,21 +138,35 @@ class Chain:
         key = self.adj_key if as_adjudicator else self.key
         lock = self._locks.setdefault(signer_addr.lower(), threading.Lock())
         with lock:
-            try:
-                tx = fn.build_transaction({
-                    "from": signer_addr,
-                    "nonce": self.w3.eth.get_transaction_count(signer_addr),
-                    "gas": GAS, "gasPrice": self.w3.eth.gas_price,
-                    "chainId": self.chain_id,
-                })
-            except ContractLogicError as e:
-                raise ChainError(f"{label}: {e}") from e
-            signed = self.w3.eth.account.sign_transaction(tx, key)
-            h = self.w3.eth.send_raw_transaction(signed.raw_transaction)
-            rcpt = self.w3.eth.wait_for_transaction_receipt(h, timeout=90, poll_latency=2)
-            if rcpt.status != 1:
-                raise ChainError(f"{label}: reverted {h.hex()}")
-            return h.hex()
+            # retry once on nonce races: an edge/relay retry can replay the
+            # same signed payload, so re-read the nonce and re-sign instead of
+            # surfacing "nonce too low" to the caller
+            last_err: Exception | None = None
+            for attempt in range(2):
+                try:
+                    tx = fn.build_transaction({
+                        "from": signer_addr,
+                        "nonce": self.w3.eth.get_transaction_count(
+                            signer_addr, "pending" if attempt else "latest"),
+                        "gas": GAS, "gasPrice": self.w3.eth.gas_price,
+                        "chainId": self.chain_id,
+                    })
+                except ContractLogicError as e:
+                    raise ChainError(f"{label}: {e}") from e
+                signed = self.w3.eth.account.sign_transaction(tx, key)
+                try:
+                    h = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+                except Exception as e:  # noqa: BLE001 - nonce race, one retry
+                    last_err = e
+                    if "nonce" in str(e).lower() and attempt == 0:
+                        time.sleep(1.5)
+                        continue
+                    raise ChainError(f"{label}: {e}") from e
+                rcpt = self.w3.eth.wait_for_transaction_receipt(h, timeout=90, poll_latency=2)
+                if rcpt.status != 1:
+                    raise ChainError(f"{label}: reverted {h.hex()}")
+                return h.hex()
+            raise ChainError(f"{label}: {last_err}")
 
     def _ensure_allowance(self) -> None:
         cur = self._token_c.functions.allowance(self.venue, self.market).call()
