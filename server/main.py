@@ -27,6 +27,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from fastapi import FastAPI
+import secrets
+from fastapi import Header  # noqa: F811 (explicit import for the admin header)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Any, Optional
@@ -221,7 +223,16 @@ def status():
 
 
 @app.post("/api/reset")
-def reset():
+def reset(x_admin_token: str = Header(default="")):
+    """Destructive: wipes the venue market and re-founds it under the charter.
+    Requires the operator token (CANON_ADMIN_TOKEN, set in the VPS env only).
+    Without a configured token the endpoint refuses — an open reset on a
+    public URL is a wipe-the-venue bug, not a feature."""
+    expected = os.environ.get("CANON_ADMIN_TOKEN", "")
+    if not expected:
+        return err(PermissionError("reset disabled: CANON_ADMIN_TOKEN not configured on this server"))
+    if not secrets.compare_digest(x_admin_token, expected):
+        return err(PermissionError("reset requires the operator token"))
     if DEMO_DB.exists():
         DEMO_DB.unlink()
     c = fresh_market()

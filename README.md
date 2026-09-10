@@ -150,6 +150,8 @@ ALL RECEIPTS VERIFIED
 
 That script re-checks every hash quoted in this README against Base Sepolia over RPC and prints the live roles and USDC balances (venue, adjudicator, contract, and the registered Virtuals agent). [EVIDENCE.md](EVIDENCE.md) maps each claim to its artifact.
 
+**Note on the live market (2026-09-10):** during a security audit the public `/api/reset` endpoint was found unprotected and exercised, which re-founded the live charter market. The endpoint is now operator-token-gated (refuses without `CANON_ADMIN_TOKEN`), and the market was rebuilt with a new real deal, a verified claim and a fresh bonded appeal. The receipts below are on-chain history and remain verifiable with `scripts/verify_receipts.py`; the live console shows the rebuilt charter market (doctrine v1 → v2 by that new appeal).
+
 ## Live on Base Sepolia — the receipt
 
 The full money path is executed, not simulated. A real $20 research-agent deal ran end-to-end through the deployed contract; every step below is a verified Base Sepolia transaction (chain 84532, USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7E`):
