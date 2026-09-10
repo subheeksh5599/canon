@@ -396,7 +396,9 @@ Run everything at once: `.venv/bin/python scripts/adversarial_gate.py` (separate
 | "Cold start isn't cold" | two processes, one Sibyl file, deterministic recall; real restart covered | `test_g009_cold_start_deterministic`, `test_g010_cold_start_real_restart`, `scripts/fresh_session.py` |
 | "Doctrine is hardcoded logic" | doctrine is stored state; v1 only after 5 confirmed cases; appeals produce v2 | `test_d024_winning_appeal_amends`, `test_d019_rule_decays_without_support` |
 | "Poison the memory with a claim" | TEXT-tier claims are inert; only RESOLVED HIGH/MEDIUM evidence seeds doctrine | `test_s001_poisoning_inert` |
-| "Sybil a history into existence" | every case needs a real registered transaction + the buyer has standing to file; one claim per tx; statute window | `test_e014_asymmetric_standing`, `test_c001_only_failed_claimable` |
+| "Sybil a history into existence" | doctrine activation requires evidence from **distinct counterparties** (live venue: 3), plus real registered transactions, buyer standing, one claim per tx, statute window | `test_single_counterparty_history_cannot_make_law`, `test_e014_asymmetric_standing` |
+| "Buy the memory with a reused attestation" | an attestation id is single-use; replay is refused | `test_attestation_id_is_single_use` |
+| "One friendly adjudicator approves everything" | a resolution can require **N distinct approvals** (mechanism tested; this deployment runs a quorum of one venue-held key — disclosed) | `test_appeal_quorum_requires_distinct_approvals` |
 | "Replay a settlement" | payout nonce/state machine refuses reuse | `test_c015_replay_payout_nonce`, `test_t012_replay_same_signed_accept` |
 | "Rules changed between quote and settlement" | terms are immutable after funding and the digest is bound to the tx | `test_t016_terms_immutable_after_fund`, `test_terms_digest_is_stored_on_the_transaction` |
 | "Ping-pong the doctrine with appeals" | amendment cooldown (live venue runs 24h) + appeal flood control + bond floor | `test_appeal_oscillation_guard_blocks_second_amendment`, `test_appeal_cooldown_disabled_by_default` |
@@ -405,7 +407,7 @@ Run everything at once: `.venv/bin/python scripts/adversarial_gate.py` (separate
 | "Memory outage silently degrades to trust" | fail-closed: no memory → no authoritative terms (zero-trust) | `test_evaluation_fails_closed_when_memory_is_unavailable`, gate script check 3 |
 | "Unfunded deals can be abandoned safely" | TERMED-only cancel, no money moves, funded deals refused | `tests/test_cancel.py` (4 tests) |
 
-Two disclosed limitations, stated rather than hidden: appeal *decisions* are signed by the operator-held adjudicator key in this deployment (bond, flood control, freeze and cooldown are enforced in code — the accept/reject judgment is a key, not a quorum); and completed-deal bonds stay locked in the contract (no venue withdrawal function in the deployed version).
+Disclosed limitations, stated rather than hidden: the anti-Sybil distinct-counterparty guard and the appeal-quorum mechanism are live/tested, but appeal adjudication runs on ONE venue-held key (quorum is implemented, not yet operated), appeal *decisions* are signed by the operator-held adjudicator key in this deployment (bond, flood control, freeze and cooldown are enforced in code — the accept/reject judgment is a key, not a quorum); and completed-deal bonds stay locked in the contract (no venue withdrawal function in the deployed version).
 
 ## Tests
 

@@ -11,7 +11,7 @@ from .appeals import AppealService
 from .cases import CaseService
 from .clock import Clock
 from .doctrine import DoctrineEngine
-from .errors import MemoryUnavailableError, NotFoundError, SettlementError, ValidationError
+from .errors import ConflictError, MemoryUnavailableError, NotFoundError, SettlementError, ValidationError
 from .ledger import Ledger
 from .memory import MemorySeam, CAT_APPEAL, CAT_CASE, CAT_CLAIM, CAT_COUNTERPARTY
 from .types import (
@@ -188,6 +188,12 @@ class Canon:
         """Full claim lifecycle: open -> validate -> resolve -> counterparty
         update -> doctrine signal/activation. Returns the settlement record."""
         tx = self.venue.require_tx(tx_id)
+        # attestation replay protection: an attestation id is single-use
+        for ev in evidence or []:
+            att = (ev or {}).get("attestation_id")
+            if att and self.venue._seam.get_hot(f"att:{att}"):
+                raise ConflictError(
+                    f"attestation {att} was already consumed — replay refused")
         case = self.cases.open_case(tx, claimant=buyer, evidence=evidence, jurisdiction=tx.jurisdiction)
         loss = tx.job_value_usd
         case = self.cases.resolve_case(
@@ -212,6 +218,11 @@ class Canon:
             forward=case.case_id,
             extra={"event": "CLAIM_RESOLVED", "signal": signal.value},
         )
+        # remember consumed attestation ids so they cannot be replayed
+        for ev in evidence or []:
+            att = (ev or {}).get("attestation_id")
+            if att:
+                self.venue._seam.set_hot(f"att:{att}", {"tx_id": tx_id, "at": self.clock.iso()})
         return {"case": case.to_dict(), "settlement": settlement, "signal": signal.value,
                 "doctrine_version_after": (activated.version if activated
                                            else self.doctrine.current_doctrine().version)}
@@ -256,8 +267,10 @@ class Canon:
         return self.appeals.open_appeal(challenger=challenger, target_rule_id=target_rule_id,
                                         arguments=arguments, evidence=evidence, bond_usd=bond_usd)
 
-    def resolve_appeal(self, appeal_id: str, *, decision: str, adjudicator: str) -> Appeal:
-        return self.appeals.resolve_appeal(appeal_id, decision=decision, adjudicator=adjudicator)
+    def resolve_appeal(self, appeal_id: str, *, decision: str, adjudicator: str,
+                       approvals: Optional[list[str]] = None) -> Appeal:
+        return self.appeals.resolve_appeal(appeal_id, decision=decision,
+                                           adjudicator=adjudicator, approvals=approvals)
 
     def doctrine_now(self) -> Doctrine:
         return self.doctrine.current_doctrine()

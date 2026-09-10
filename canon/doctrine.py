@@ -280,6 +280,26 @@ class DoctrineEngine:
         candidate = self.propose_candidate_rule(pattern_key, activated_by_case=activated_by_case)
         if candidate is None:
             return None
+        # Anti-Sybil: a history built by ONE counterparty cannot become law for
+        # the whole venue. The live venue runs with CANON_MIN_DISTINCT_COUNTERPARTIES=3;
+        # the default of 1 keeps unit fixtures single-provider.
+        import os as _os
+        min_distinct = int(_os.environ.get("CANON_MIN_DISTINCT_COUNTERPARTIES", "1") or 1)
+        if min_distinct > 1:
+            provs = set()
+            for cid in (candidate.supporting_case_ids or []):
+                body = self._seam.get_entity(mem_mod.CAT_CASE, cid) or {}
+                if body.get("provider"):
+                    provs.add(body["provider"])
+            if len(provs) < min_distinct:
+                self._seam.write_event(
+                    evaluated={"pattern": pattern_key,
+                               "distinct_counterparties": len(provs),
+                               "required": min_distinct},
+                    acted="doctrine.activation_refused",
+                    extra={"event": "SYBIL_GUARD"},
+                )
+                return None
         import copy as _copy
         doc = self.current_doctrine()
         carried = [self._apply_decay(_copy.deepcopy(r)) for r in doc.rules]

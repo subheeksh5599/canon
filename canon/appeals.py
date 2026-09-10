@@ -84,8 +84,24 @@ class AppealService:
         return appeal
 
     def resolve_appeal(self, appeal_id: str, *, decision: str, adjudicator: str,
-                       independent_review: bool = True) -> Appeal:
-        """Adjudication by an independent fact-finder (A-006)."""
+                       independent_review: bool = True,
+                       approvals: Optional[list[str]] = None) -> Appeal:
+        """Adjudication by an independent fact-finder (A-006).
+
+        Quorum: with CANON_APPEAL_QUORUM > 1 the resolution requires that many
+        DISTINCT approving adjudicator addresses (none of them the challenger).
+        The mechanism is implemented and tested; this deployment runs a quorum
+        of one venue-held adjudicator key, which the README discloses.
+        """
+        import os as _os
+        quorum = int(_os.environ.get("CANON_APPEAL_QUORUM", "1") or 1)
+        if quorum > 1:
+            approvers = {a.lower() for a in (approvals or [adjudicator]) if a}
+            if len(approvers) < quorum:
+                raise ValidationError(
+                    f"appeal resolution requires {quorum} distinct adjudicator approvals "
+                    f"(got {len(approvers)})")
+            self._last_approvers = approvers  # verified against the challenger below
         body = self._seam.get_entity(CAT_APPEAL, appeal_id)
         if body is None:
             raise NotFoundError(f"appeal {appeal_id} not found")
@@ -97,6 +113,9 @@ class AppealService:
             raise ValidationError("appeal resolution requires independent fact-finder review")
         if adjudicator == appeal.challenger:
             raise ValidationError("adjudicator cannot be the challenger")
+        for a in getattr(self, "_last_approvers", set()) or set():
+            if a == appeal.challenger.lower():
+                raise ValidationError("an approver cannot be the challenger")
         decision = decision.upper()
         if decision not in ("ACCEPTED", "REJECTED"):
             raise ValidationError("decision must be ACCEPTED or REJECTED")
