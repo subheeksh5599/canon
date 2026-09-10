@@ -3,7 +3,7 @@
 # On first real 200 completion: writes proof, flips the README honesty row to
 # EXERCISED with the real response id, commits and pushes. Never claims a 402.
 set -u
-KEY="acp-eb52e188614618c4e85b"
+KEY="${VIRTUALS_API_KEY:?set VIRTUALS_API_KEY in the environment (gitignored .env file)}"
 MARK="/home/arch/canon/docs/.virtuals-proof-committed"
 LOG="/home/arch/canon/docs/virtuals-probe.log"
 cd /home/arch/canon || exit 1

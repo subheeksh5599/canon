@@ -278,11 +278,9 @@ class Venue:
         return tx
 
     def list_hot_txs(self) -> list[dict[str, Any]]:
-        out = []
-        for body in self._seam.list_entities(CAT_AGENT, limit=1):  # placeholder to keep seam warm
-            pass
-        # HOT tier has no list API on the client; track via COLD events instead
-        return out
+        """The HOT tier has no list API on the Sibyl client; transactions are
+        enumerated from the COLD journal instead (see server/main.py)."""
+        return []
 
     def counterparty(self, provider: str):
         body = self._seam.get_entity(CAT_COUNTERPARTY, f"cp:{provider}")
