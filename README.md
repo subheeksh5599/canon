@@ -42,6 +42,7 @@ The loop is the product: **transactions → collective memory → precedent → 
 ## Table of contents
 
 - [▶ See it in one command](#see-it-in-one-command)
+- [Verify every claim in one command](#verify-every-claim-in-one-command)
 - [Live on Base Sepolia — the receipt](#live-on-base-sepolia--the-receipt)
 - [What CANON is NOT](#what-canon-is-not)
 - [The deletion test — memory is load-bearing](#the-deletion-test--memory-is-load-bearing)
@@ -123,6 +124,30 @@ Real captures of the live venue (`scripts/capture_shots.cjs`, headless Chromium 
 **The venue ledger.** The console's Transactions view on the live market: every real deal (the $16 charter case, the settled $0.55 UI run, the Virtuals agent's $16 job, state COMPLETED with escrow paid to `0x1776e…`) with each escrow and claim transaction linked to Basescan.
 
 ![CANON ledger](docs/media/canon-ledger.png)
+
+## Verify every claim in one command
+
+```bash
+$ .venv/bin/python scripts/verify_receipts.py
+deploy CanonMarket                           OK
+run 1 register                               OK
+run 1 escrow                                 OK
+run 1 claim                                  OK
+run 1 final                                  OK
+roles split                                  OK
+charter register $16                         OK
+charter escrow                               OK
+charter fail                                 OK
+charter claim (adjudicator)                  OK
+appeal open ($5 bond)                        OK
+appeal accepted -> v2                        OK
+agent deal register                          OK
+agent deal escrow                            OK
+agent deal payout ($9.60 -> agent)           OK
+ALL RECEIPTS VERIFIED
+```
+
+That script re-checks every hash quoted in this README against Base Sepolia over RPC and prints the live roles and USDC balances (venue, adjudicator, contract, and the registered Virtuals agent). [EVIDENCE.md](EVIDENCE.md) maps each claim to its artifact.
 
 ## Live on Base Sepolia — the receipt
 
